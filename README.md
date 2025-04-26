@@ -1,7 +1,7 @@
 # Flexsheet
 node_modules?
 *  npm i
----------------------------------------
+------------------CMD-------------------
 + cd -> para moverte 
 
 * node index.js -> backend
@@ -10,11 +10,13 @@ node_modules?
 
 * quasar build -> no usar (por ahora)
   
----------------------------------------
+-----------------.env-----------------
+PORT = ""
 
-.env :
-    PORT = ""
-    S_IP = ""
-    S_USER= ""
-    S_CEN= ""
-    S_DB = ""
+S_IP = ""
+
+S_USER= ""
+
+S_CEN= ""
+
+S_DB = ""
