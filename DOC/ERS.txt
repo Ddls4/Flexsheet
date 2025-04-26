@@ -1,0 +1,15 @@
+Índice
+Introducción: Propósito del DOC
+Alcance
+Definiciones
+Descripción general: ¿Qué es?
+Funciones: ¿Tópicos básicos?
+Restricciones: normas o compatibilidades
+Requerimiento específico:
+  Funcional 
+  No Funcional
+  Interfaz externa (Google?)
+Anexos: 
+  Diagramas → caso de uso / flujo / otros
+  Orden y priorización
+  Historial de cambios
