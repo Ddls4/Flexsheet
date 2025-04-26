@@ -11,6 +11,7 @@ node_modules?
 * quasar build -> no usar (por ahora)
   
 -----------------.env-----------------
+
 PORT = ""
 
 S_IP = ""
