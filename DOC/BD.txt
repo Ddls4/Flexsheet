@@ -1,0 +1,30 @@
+📘 Guía Rápida de Comandos MySQL
+🧑‍💻 Conexión al Servidor MySQL
+mysql -u [NombreUsuario] -p
+
+📂 Comandos Básicos
+Mostrar todas las bases de datos disponibles
+SHOW DATABASES;
+
+Seleccionar una base de datos para usar
+USE [NombreDeLaBaseDeDatos];
+
+Mostrar todas las tablas de la base de datos seleccionada
+SHOW TABLES;
+
+Ver la estructura de una tabla
+DESCRIBE [NombreDeLaTabla];
+
+Consultar todos los datos de una tabla
+SELECT * FROM [NombreDeLaTabla];
+
+🏗️ Crear una Tabla
+CREATE TABLE NombreDeLaTabla (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    edad INT,
+    correo VARCHAR(100)
+);
+Este es un ejemplo de cómo crear una tabla con algunos campos comunes.
+
+
