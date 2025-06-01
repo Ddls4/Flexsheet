@@ -13,7 +13,12 @@ servidor.get("/", (req, res) => {
 servidor.post("/register", async (req, res) => {
     const { name } = req.body;
     console.log("El usuario en registro es: ",name)
-    registrar( name );
+    try {
+      await registrar(name);
+      res.status(200).json({ success: true, message: "Usuario registrado" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error al registrar" });
+    }
 });
 
   

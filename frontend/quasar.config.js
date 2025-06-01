@@ -1,7 +1,11 @@
+/* eslint-env node */
+
 // Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
+// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
+
 
 import { defineConfig } from '#q-app/wrappers'
+
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -12,9 +16,11 @@ export default defineConfig((/* ctx */) => {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
+      
+      
     ],
 
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
+    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
       'app.css'
     ],
@@ -33,7 +39,7 @@ export default defineConfig((/* ctx */) => {
       'material-icons', // optional, you are not bound to it
     ],
 
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
+    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       target: {
         browser: [ 'es2022', 'firefox115', 'chrome115', 'safari14' ],
@@ -58,20 +64,20 @@ export default defineConfig((/* ctx */) => {
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
+
       
       // vitePlugins: [
       //   [ 'package-name', { ..pluginOptions.. }, { server: true, client: true } ]
       // ]
     },
 
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
+    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      // https: true,
+      // https: true
       open: true // opens browser window automatically
-
     },
 
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
+    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {},
 
@@ -93,7 +99,7 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/options/animations
     animations: [],
 
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#sourcefiles
+    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#property-sourcefiles
     // sourceFiles: {
     //   rootComponent: 'src/App.vue',
     //   router: 'src/router/index',
@@ -124,6 +130,7 @@ export default defineConfig((/* ctx */) => {
       // manualPostHydrationTrigger: true,
 
       pwa: false
+
       // pwaOfflineHtmlFilename: 'offline.html', // do NOT use index.html as name!
 
       // pwaExtendGenerateSWOptions (cfg) {},
@@ -134,7 +141,7 @@ export default defineConfig((/* ctx */) => {
     pwa: {
       workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
       // swFilename: 'sw.js',
-      // manifestFilename: 'manifest.json',
+      // manifestFilename: 'manifest.json'
       // extendManifestJson (json) {},
       // useCredentialsForManifestTag: true,
       // injectPwaMetaTags: false,
@@ -184,7 +191,7 @@ export default defineConfig((/* ctx */) => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'frontend'
+        appId: 'front'
       }
     },
 
@@ -193,15 +200,7 @@ export default defineConfig((/* ctx */) => {
       // extendBexScriptsConf (esbuildConf) {},
       // extendBexManifestJson (json) {},
 
-      /**
-       * The list of extra scripts (js/ts) not in your bex manifest that you want to
-       * compile and use in your browser extension. Maybe dynamic use them?
-       *
-       * Each entry in the list should be a relative filename to /src-bex/
-       *
-       * @example [ 'my-script.ts', 'sub-folder/my-other-script.js' ]
-       */
       extraScripts: []
     }
   }
-})
+});

@@ -7,8 +7,6 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import morgan from "morgan";
 
-const PORT = process.env.PORT || 3000;
-
 // Obtener rutas del archivo y directorio actual
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +24,11 @@ servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 
 // Crear servidor HTTP
 const httpServer = createServer(servidor);
+
+servidor.use(cors({
+  origin: 'http://localhost:9000', // o el puerto donde corre tu frontend
+  credentials: true
+}));
 
 // Configurar Socket.IO en el servidor HTTP
 const io = new Server(httpServer, {

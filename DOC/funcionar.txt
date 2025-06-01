@@ -1,0 +1,13 @@
+NPM
+npm install axios
+npm install 
+
+.ENV
+PORT = 3000
+S_IP = "localhost"
+S_USER= "root"
+S_CEN= "1324"
+S_DB = "cosa"
+
+Xampp 
+Cambiar apache del puerto 80 a 8080 y 448 a 8448
