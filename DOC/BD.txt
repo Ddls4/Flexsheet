@@ -48,3 +48,21 @@ Usuarios  <---->  Proyectos  <----->   Inf proyects
 - Contreaseña        
 
 -------------------------------------------------------------------------
+
+sudo systemctl status mysql
+sudo systemctl start mysql
+¿MySQL escucha en todas las interfaces?
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+bind-address = 127.0.0.1
+bind-address = 0.0.0.0
+¿Está abierto el puerto 3306 en el firewall de Linux?
+sudo ufw status
+sudo ufw allow 3306/tcp
+sudo ufw reload
+¿El usuario MySQL tiene permisos para conectarse desde cualquier host?
+SELECT user, host FROM mysql.user WHERE user = 'grupoddfjg';
+
+Si el host para ese usuario no es '%', entonces necesitas crear o actualizar el usuario para que pueda conectarse remotamente:
+CREATE USER 'grupoddfjg'@'%' IDENTIFIED BY 'tu_contraseña';
+GRANT ALL PRIVILEGES ON *.* TO 'grupoddfjg'@'%';
+FLUSH PRIVILEGES;
