@@ -1,6 +1,14 @@
+IAE y Redes : Soft$$123! y superMaster
+
+
+N: grupoddfjg  # root
+C: superMaster7 # ?superMaster?
+IP: 192.168.0.200
+
+
 📘 Guía Rápida de Comandos MySQL
 🧑‍💻 Conexión al Servidor MySQL
-mysql -u [NombreUsuario] -p
+sudo mysql -u [NombreUsuario] -p
 
 📂 Comandos Básicos
 Mostrar todas las bases de datos disponibles
@@ -27,4 +35,16 @@ CREATE TABLE NombreDeLaTabla (
 );
 Este es un ejemplo de cómo crear una tabla con algunos campos comunes.
 
+-----------------------------------------------------------------------
+TABLA de nosotros 
 
+          1    N              1    1
+Usuarios  <---->  Proyectos  <----->   Inf proyects
+
+- I.D                - ID                  - ID  
+- Nombre             - Usuario ID FK       - Boton_ID FK
+- Correo             - Nombre              - Json
+- Google             
+- Contreaseña        
+
+-------------------------------------------------------------------------
