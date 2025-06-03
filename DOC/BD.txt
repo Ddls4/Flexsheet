@@ -1,8 +1,9 @@
-IAE y Redes : Soft$$123! y superMaster
+IAE  : superMaster
+Redes : Soft$$123 
 
 
 N: grupoddfjg  # root
-C: superMaster7! # ?superMaster?
+C: superMaster7! # superMaster
 DB: = "ddfjg"
 IP: 192.168.0.200
 
