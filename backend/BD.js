@@ -5,17 +5,24 @@ const conexion = await mysql.createConnection({
     host: process.env.S_IP,
     user: process.env.S_USER,
     database: process.env.S_DB,
-    password: process.env.S_CEN
+    password: process.env.S_CEN,
+    connectTimeout: 50000
 });
 
+console.time('Tiempo de conexión');
+
 conexion.connect((err) => {
-    if (err) throw err;
-    console.log('Conectado a MySQL');
+  console.timeEnd('Tiempo de conexión'); // Muestra el tiempo en ms
+  if (err) {
+    console.error('Error al conectar:', err);
+    return;
+  }
+  console.log('Conectado a MySQL');
 });
 
 const registrar = async (username) => {
     console.log("Registrando a ", username);
-    const query = "INSERT INTO `usuario` (`nombre`) VALUES (?)";
+    const query = "INSERT INTO `usuarios1` (`nombre`) VALUES (?)"; // Base de datos temporal
     
     conexion.query(query, [username], (err) => {
         if (err) {
