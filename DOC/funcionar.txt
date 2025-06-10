@@ -1,5 +1,6 @@
 Flexsheet
-------------------CMD-------------------
+
+----------------- CMD ------------------
 cd -> para moverte
 node index.js -> backend
 quasar dev -> frontend
@@ -10,13 +11,20 @@ npm install -g @quasar/cli
 npm i 
 npm install axios
 
------------------.env-----------------
+---------------- .env ----------------
 PORT = 80
 S_IP = "192.168.0.200"
 S_USER= "grupoddfjg"
 S_CEN= "superMaster7!"
 S_DB = "ddfjg"
 
------------------Xampp-----------------
+---------------- Xampp ----------------
 Si vas a hacer una prueba en local
 Cambiar apache del puerto 80 a 8080
+
+
+------------ quasar (frontend) ----------
+
+carpeta: "src/layouts/MainLayout.vue" si quieres cambiar la barra superior
+carpeta: "src/pages/" si quieres "crear una nueva venta".
+carpeta: "src/router/routes.js" para darle una ruta a los .vue de "src/pages/"

@@ -12,13 +12,19 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          Flexsheet
           <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
             {{ socketConnected ? 'Conectado' : 'Desconectado' }}
           </q-badge>
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div> 
+          <q-btn label="Inicio" color="primary" :to="`/`" />
+          <q-btn label="tabla" color="primary" :to="`/tabla`" />
+          <q-btn label="registro" color="primary" :to="`/registro`" />
+        </div>
+        
+        
       </q-toolbar>
     </q-header>
 
@@ -27,12 +33,13 @@
       show-if-above
       bordered
     >
-     
+      <div>Quasar: v{{ $q.version }}</div>
     </q-drawer>
 
     <q-page-container>
       <!-- Pasa el socket a todas las páginas hijas -->
       <router-view :socket="socket" />
+      
     </q-page-container>
   </q-layout>
 </template>
