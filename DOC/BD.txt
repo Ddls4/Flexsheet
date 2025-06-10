@@ -68,3 +68,103 @@ Si el host para ese usuario no es '%', entonces necesitas crear o actualizar el 
 CREATE USER 'grupoddfjg'@'%' IDENTIFIED BY 'tu_contraseña';
 GRANT ALL PRIVILEGES ON *.* TO 'grupoddfjg'@'%';
 FLUSH PRIVILEGES;
+
+
+---------------------------------------------------------------------------------------
+MySQL
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Permisos`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Permisos` (
+  `id` INT NULL,
+  `1_R` VARCHAR(45) NULL,
+  `2_W` VARCHAR(45) NULL,
+  `Json` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Tipo de usuario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Tipo de usuario` (
+  `id` INT NULL,
+  `Nombre` VARCHAR(45) NULL,
+  `Administrador` VARCHAR(45) NULL,
+  `Usuario sin privilegio` VARCHAR(45) NULL,
+  `Tipo de usuario` VARCHAR(45) NULL,
+  `Permisos_id` INT NOT NULL,
+  PRIMARY KEY (`id`, `Permisos_id`),
+  INDEX `fk_Tipo de usuario_Permisos1_idx` (`Permisos_id` ASC) VISIBLE,
+  CONSTRAINT `fk_Tipo de usuario_Permisos1`
+    FOREIGN KEY (`Permisos_id`)
+    REFERENCES `mydb`.`Permisos` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Mesa de trabajo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Mesa de trabajo` (
+  `id` INT NULL,
+  `Usuario` VARCHAR(45) NULL,
+  `Nombre` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Usuarios`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios` (
+  `id` INT NULL,
+  `Nombre` VARCHAR(45) NULL,
+  `Correo` VARCHAR(45) NULL,
+  `Contraseña` VARCHAR(45) NULL,
+  `Tipo de usuario` VARCHAR(45) NULL,
+  `Tipo de usuario_id` INT NOT NULL,
+  `Mesa de trabajo_id` INT NOT NULL,
+  PRIMARY KEY (`id`, `Tipo de usuario_id`),
+  UNIQUE INDEX `Correo_UNIQUE` (`Correo` ASC) VISIBLE,
+  UNIQUE INDEX `Contraseña_UNIQUE` (`Contraseña` ASC) VISIBLE,
+  UNIQUE INDEX `Tipo de usuario_UNIQUE` (`Tipo de usuario` ASC) VISIBLE,
+  INDEX `fk_Usuarios_Tipo de usuario_idx` (`Tipo de usuario_id` ASC) VISIBLE,
+  INDEX `fk_Usuarios_Mesa de trabajo1_idx` (`Mesa de trabajo_id` ASC) VISIBLE,
+  CONSTRAINT `fk_Usuarios_Tipo de usuario`
+    FOREIGN KEY (`Tipo de usuario_id`)
+    REFERENCES `mydb`.`Tipo de usuario` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Usuarios_Mesa de trabajo1`
+    FOREIGN KEY (`Mesa de trabajo_id`)
+    REFERENCES `mydb`.`Mesa de trabajo` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Inf de mesa de trabajo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Inf de mesa de trabajo` (
+  `id` INT NULL,
+  `Boton_ID` VARCHAR(45) NULL,
+  `Json` JSON NULL,
+  `Mesa de trabajo_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_Inf de mesa de trabajo_Mesa de trabajo1_idx` (`Mesa de trabajo_id` ASC) VISIBLE,
+  CONSTRAINT `fk_Inf de mesa de trabajo_Mesa de trabajo1`
+    FOREIGN KEY (`Mesa de trabajo_id`)
+    REFERENCES `mydb`.`Mesa de trabajo` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
