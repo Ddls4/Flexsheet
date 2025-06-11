@@ -74,97 +74,71 @@ FLUSH PRIVILEGES;
 MySQL
 
 
--- -----------------------------------------------------
--- Table `mydb`.`Permisos`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Permisos` (
-  `id` INT NULL,
-  `1_R` VARCHAR(45) NULL,
-  `2_W` VARCHAR(45) NULL,
-  `Json` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  `id` INT NOT NULL,
+  `R` VARCHAR(45),
+  `W` VARCHAR(45),
+  `Json` VARCHAR(45),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
 
-
--- -----------------------------------------------------
--- Table `mydb`.`Tipo de usuario`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Tipo de usuario` (
-  `id` INT NULL,
-  `Nombre` VARCHAR(45) NULL,
-  `Administrador` VARCHAR(45) NULL,
-  `Usuario sin privilegio` VARCHAR(45) NULL,
-  `Tipo de usuario` VARCHAR(45) NULL,
+CREATE TABLE IF NOT EXISTS `mydb`.`Tipo_usuario` (
+  `id` INT NOT NULL,
+  `Nombre` VARCHAR(45),
+  `Administrador` VARCHAR(45),
+  `Usuario_sin_privilegio` VARCHAR(45),
+  `Tipo_usuario` VARCHAR(45),
   `Permisos_id` INT NOT NULL,
   PRIMARY KEY (`id`, `Permisos_id`),
-  INDEX `fk_Tipo de usuario_Permisos1_idx` (`Permisos_id` ASC) VISIBLE,
-  CONSTRAINT `fk_Tipo de usuario_Permisos1`
+  INDEX `fk_Tipo_usuario_Permisos_idx` (`Permisos_id`),
+  CONSTRAINT `fk_Tipo_usuario_Permisos`
     FOREIGN KEY (`Permisos_id`)
     REFERENCES `mydb`.`Permisos` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `mydb`.`Mesa_trabajo` (
+  `id` INT NOT NULL,
+  `Usuario` VARCHAR(45),
+  `Nombre` VARCHAR(45),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
 
--- -----------------------------------------------------
--- Table `mydb`.`Mesa de trabajo`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Mesa de trabajo` (
-  `id` INT NULL,
-  `Usuario` VARCHAR(45) NULL,
-  `Nombre` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `mydb`.`Usuarios`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios` (
-  `id` INT NULL,
-  `Nombre` VARCHAR(45) NULL,
-  `Correo` VARCHAR(45) NULL,
-  `Contraseña` VARCHAR(45) NULL,
-  `Tipo de usuario` VARCHAR(45) NULL,
-  `Tipo de usuario_id` INT NOT NULL,
-  `Mesa de trabajo_id` INT NOT NULL,
-  PRIMARY KEY (`id`, `Tipo de usuario_id`),
-  UNIQUE INDEX `Correo_UNIQUE` (`Correo` ASC) VISIBLE,
-  UNIQUE INDEX `Contraseña_UNIQUE` (`Contraseña` ASC) VISIBLE,
-  UNIQUE INDEX `Tipo de usuario_UNIQUE` (`Tipo de usuario` ASC) VISIBLE,
-  INDEX `fk_Usuarios_Tipo de usuario_idx` (`Tipo de usuario_id` ASC) VISIBLE,
-  INDEX `fk_Usuarios_Mesa de trabajo1_idx` (`Mesa de trabajo_id` ASC) VISIBLE,
-  CONSTRAINT `fk_Usuarios_Tipo de usuario`
-    FOREIGN KEY (`Tipo de usuario_id`)
-    REFERENCES `mydb`.`Tipo de usuario` (`id`)
+  `id` INT NOT NULL,
+  `Nombre` VARCHAR(45),
+  `Correo` VARCHAR(45),
+  `Contraseña` VARCHAR(45),
+  `Tipo_usuario` VARCHAR(45),
+  `Tipo_usuario_id` INT NOT NULL,
+  `Mesa_trabajo_id` INT NOT NULL,
+  PRIMARY KEY (`id`, `Tipo_usuario_id`),
+  UNIQUE INDEX `Correo_UNIQUE` (`Correo`),
+  INDEX `fk_Usuarios_Tipo_usuario_idx` (`Tipo_usuario_id`),
+  INDEX `fk_Usuarios_Mesa_trabajo_idx` (`Mesa_trabajo_id`),
+  CONSTRAINT `fk_Usuarios_Tipo_usuario`
+    FOREIGN KEY (`Tipo_usuario_id`)
+    REFERENCES `mydb`.`Tipo_usuario` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Usuarios_Mesa de trabajo1`
-    FOREIGN KEY (`Mesa de trabajo_id`)
-    REFERENCES `mydb`.`Mesa de trabajo` (`id`)
+  CONSTRAINT `fk_Usuarios_Mesa_trabajo`
+    FOREIGN KEY (`Mesa_trabajo_id`)
+    REFERENCES `mydb`.`Mesa_trabajo` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB;
 
-
--- -----------------------------------------------------
--- Table `mydb`.`Inf de mesa de trabajo`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Inf de mesa de trabajo` (
-  `id` INT NULL,
-  `Boton_ID` VARCHAR(45) NULL,
-  `Json` JSON NULL,
-  `Mesa de trabajo_id` INT NOT NULL,
+CREATE TABLE IF NOT EXISTS `mydb`.`Inf_mesa_trabajo` (
+  `id` INT NOT NULL,
+  `Boton_ID` VARCHAR(45),
+  `Json` JSON,
+  `Mesa_trabajo_id` INT NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_Inf de mesa de trabajo_Mesa de trabajo1_idx` (`Mesa de trabajo_id` ASC) VISIBLE,
-  CONSTRAINT `fk_Inf de mesa de trabajo_Mesa de trabajo1`
-    FOREIGN KEY (`Mesa de trabajo_id`)
-    REFERENCES `mydb`.`Mesa de trabajo` (`id`)
+  INDEX `fk_Inf_mesa_trabajo_Mesa_trabajo_idx` (`Mesa_trabajo_id`),
+  CONSTRAINT `fk_Inf_mesa_trabajo_Mesa_trabajo`
+    FOREIGN KEY (`Mesa_trabajo_id`)
+    REFERENCES `mydb`.`Mesa_trabajo` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB;
