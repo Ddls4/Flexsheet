@@ -3,7 +3,7 @@
         <div class="q-pa-md" style="max-width: 400px; width: 100%;">
             <q-card>
                 <q-card-section>
-                    <div class="text-h6">Registro de Usuario</div>
+                    <div class="text-h6">Login de Usuario</div>
                 </q-card-section>
 
                 <q-card-section>

@@ -20,8 +20,8 @@
 
         <div> 
           <q-btn label="Inicio" color="primary" :to="`/`" />
-          <q-btn label="tabla" color="primary" :to="`/tabla`" />
-          <q-btn label="registro" color="primary" :to="`/registro`" />
+          <q-btn label="Registro" color="primary" :to="`/registro`" />
+          <q-btn label="Login" color="primary" :to="`/Login`" />
         </div>
         
         
