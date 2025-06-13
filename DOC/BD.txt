@@ -71,9 +71,7 @@ FLUSH PRIVILEGES;
 
 
 ---------------------------------------------------------------------------------------
-MySQL
-
-
+                                          MySQL
 CREATE TABLE IF NOT EXISTS `mydb`.`Permisos` (
   `id` INT NOT NULL,
   `R` VARCHAR(45),
@@ -142,3 +140,29 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Inf_mesa_trabajo` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
+---------------------------------------------------------------------------------------
+
+
+CREATE TABLE Mesa_trabajo (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  Nombre VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE Usuarios (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  Nombre VARCHAR(45) NOT NULL,
+  Contraseña VARCHAR(255) NOT NULL,
+  Mesa_trabajo_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_Usuarios_Mesa_trabajo FOREIGN KEY (Mesa_trabajo_id) REFERENCES Mesa_trabajo(id)
+);
+
+CREATE TABLE Inf_mesa_trabajo (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  Boton_ID VARCHAR(45) NOT NULL,
+  Json JSON NULL,
+  Mesa_trabajo_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_Inf_mesa_trabajo_Mesa_trabajo FOREIGN KEY (Mesa_trabajo_id) REFERENCES Mesa_trabajo(id)
+);
