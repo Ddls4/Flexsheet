@@ -7,14 +7,14 @@
                 </q-card-section>
 
                 <q-card-section>
-                    <q-input filled v-model="form.name" label="Nombre" />
+                    <q-input filled v-model="form.username" label="Nombre" />
                 </q-card-section>
                 <q-card-section>
-                    <q-input filled v-model="form.password" label="Contraseña" :type="showPassword ? 'text' : 'password'"  />
+                    <q-input filled v-model="form.password" label="Contraseña"  />
                 </q-card-section>
 
                 <q-card-actions>
-                    <q-btn @click="registerUser" label="Enviar" color="primary" />
+                    <q-btn @click="LoginUser" label="Enviar" color="primary" />
                 </q-card-actions>
 
                 <q-card-section v-if="mensaje">
@@ -30,17 +30,24 @@
     import { ref } from 'vue'
     import axios from 'axios'
 
-    const form = ref({ name: '' })
+    const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
 
-    const registerUser = async () => {
+    const LoginUser = async () => {
         try {
-            const response = await axios.post('/register', form.value)
-            mensaje.value = 'Usuario registrado con éxito' 
+            const response = await axios.post('http://localhost:80/login', form.value, { withCredentials: true });
+            if (response.data.success) {
+                mensaje.value = 'Usuario logeado con éxito';
+                // Guardar los datos del usuario en localStorage o en el estado de la aplicación
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                // Redirigir al usuario a la página principal o dashboard
+                window.location.href = '/'; // Ajusta la ruta según tu aplicación
+            }
         } catch (error) {
-        console.error('Error al registrar:', error.response?.data || error.message)
-        mensaje.value = 'Error al registrar usuario' 
+            console.error('Error al registrar:', error.response?.data || error.message);
+            mensaje.value = 'Error al logear al usuario';
         }
     }
+
 
 </script>

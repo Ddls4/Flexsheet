@@ -7,10 +7,10 @@
                 </q-card-section>
 
                 <q-card-section>
-                    <q-input filled v-model="form.name" label="Nombre" />
+                    <q-input filled v-model="form.username" label="Nombre" />
                 </q-card-section>
                 <q-card-section>
-                    <q-input filled v-model="form.password" label="Contraseña" :type="showPassword ? 'text' : 'password'"  />
+                    <q-input filled v-model="form.password" label="Contraseña"  />
                 </q-card-section>
 
                 <q-card-actions>
@@ -30,12 +30,12 @@
     import { ref } from 'vue'
     import axios from 'axios'
 
-    const form = ref({ name: '' })
+    const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
 
     const registerUser = async () => {
         try {
-            const response = await axios.post('/register', form.value)
+            const response = await axios.post('http://localhost:80/register', form.value)
             mensaje.value = 'Usuario registrado con éxito' 
         } catch (error) {
         console.error('Error al registrar:', error.response?.data || error.message)

@@ -39,7 +39,7 @@
                   :src="card.imageUrl"
                   style="height: 100px; margin-bottom: 10px;"
                 />
-                <div class="text-h6">{{ card.name }}</div>
+                <div class="text-h6">{{ card.title }}</div>
                 <div class="text-subtitle2">Creado: {{ card.date }}</div>
               </q-card-section>
 
@@ -117,8 +117,9 @@
 
 <script setup>
  // Sistema para entrar a las tablas
-    import { ref } from 'vue'
+    import { ref, onMounted } from 'vue';
     import { useRouter } from 'vue-router'
+    import axios from 'axios'
 
     const router = useRouter()
 
@@ -130,6 +131,26 @@
     const selectedCardIndex = ref(null);
     const selectionMode = ref(false);
 
+    const fetchUserCards = async () => {
+      try {
+        const response = await axios.get('http://localhost:80/cards', {
+          withCredentials: true
+        });
+        console.log('Cards:', response.data.cards);
+
+        // Guardar en el estado
+        cards.value = response.data.cards.map(card => ({
+          id: card.id,
+          title: card.title,
+          date: card.created_at, // ajustá si se llama distinto
+          imageUrl: card.imageUrl
+        }));
+
+      } catch (error) {
+        console.error('Error al obtener las cards:', error.response?.data || error.message);
+      }
+    };
+
     const AbrirDialogCreacion = () => {
       showCreateDialog.value = true;
     };
@@ -137,20 +158,40 @@
       showCreateDialog.value = false;
       newCard.value = { title: '', imageUrl: '' };
     };
-    const handleSubmit = () => {
-      // Crear la nueva card con la estructura correcta
-      const today = new Date();
-      const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-      
+const handleSubmit = async () => {
+  try {
+    // 1. Preparar los datos de la card
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    
+    const cardData = {
+      title: newCard.value.title,
+      date: formattedDate,
+      imageUrl: newCard.value.imageUrl
+    };
+
+    // 2. Enviar al backend (usando axios)
+    const response = await axios.post('http://localhost:80/cards', cardData, {
+      withCredentials: true // Importante para la sesión
+    });
+
+    // 3. Si es exitoso, actualizar el frontend
+    if (response.data.success) {
       cards.value.push({
-        name: newCard.value.title,
-        date: formattedDate,
-        imageUrl: newCard.value.imageUrl
+        id: response.data.cardId, // ID generado por MySQL
+        name: cardData.title,
+        date: cardData.date,
+        imageUrl: cardData.imageUrl
       });
       
-      console.log('Nueva card creada:', newCard.value);
+      console.log('Card guardada en BD:', response.data);
       CerrarDialogCreate();
-    };
+    }
+  } catch (error) {
+    console.error('Error al guardar la card:', error.response?.data || error.message);
+    // Puedes mostrar un mensaje de error al usuario
+  }
+};
 
     const toggleSelectionMode = () => {
       selectionMode.value = !selectionMode.value;
@@ -168,7 +209,7 @@
       } else {
         // modo normal: redirigir a /tabla pasando la card o su nombre
         const card = cards.value[index];
-        router.push({ path: '/tabla', query: { name: card.name } });
+        router.push({ path: '/tabla', query: { name: card.title } });
       }
     };
     const confirmarEliminar = () => {
@@ -181,7 +222,10 @@
         selectedCardIndex.value = null; // Limpiar selección luego de eliminar
       }
     };
-
+    
+    onMounted(() => {
+      fetchUserCards();
+    });
 </script>
 
 

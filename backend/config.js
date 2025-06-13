@@ -1,4 +1,5 @@
 import express from "express";
+import session from "express-session";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -15,7 +16,6 @@ const __dirname = path.dirname(__filename);
 const servidor = express();
 config();
 // Middlewares
-servidor.use(cors());
 servidor.use(morgan("dev"));
 servidor.use(express.json());
 servidor.use(express.urlencoded({ extended: true }));
@@ -57,6 +57,13 @@ httpServer.listen(process.env.PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${process.env.PORT}`);
   console.log(`WebSocket disponible en ws://localhost:${process.env.PORT}`);
 })
+
+servidor.use(session({
+    secret: 'secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+}));
 
 export{
     servidor,
