@@ -12,7 +12,8 @@
         />
 
         <q-toolbar-title>
-          Flexsheet
+          Logo:
+          <img src="~assets/Captura-de-pantalla-2025-06-21-172759.svg" alt="Logo" class="q-ml-sm" style="height: 30px; width: 30px;" to="`/`" />
           <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
             {{ socketConnected ? 'Conectado' : 'Desconectado' }}
           </q-badge>
