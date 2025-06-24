@@ -35,7 +35,7 @@
 
     const LoginUser = async () => {
         try {
-            const response = await axios.post('http://192.168.1.10:80/login', form.value, { withCredentials: true });
+            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/login`, form.value, { withCredentials: true });
             if (response.data.success) {
                 mensaje.value = 'Usuario logeado con éxito';
                 // Guardar los datos del usuario en localStorage o en el estado de la aplicación

@@ -6,25 +6,57 @@ node index.js -> backend
 quasar dev -> frontend
 quasar build -> no usar (por ahora)
 
-NPM
+----------------- NPM -----------------
 npm install -g @quasar/cli
 npm i 
 npm install axios
-
----------------- .env ----------------
-PORT = 80
-S_IP = "192.168.0.200"
-S_USER= "grupoddfjg"
-S_CEN= "superMaster7!"
-S_DB = "ddfjg"
-
----------------- Xampp ----------------
-Si vas a hacer una prueba en local
-Cambiar apache del puerto 80 a 8080
-
 
 ------------ quasar (frontend) ----------
 
 carpeta: "src/layouts/MainLayout.vue" si quieres cambiar la barra superior
 carpeta: "src/pages/" si quieres "crear una nueva venta".
 carpeta: "src/router/routes.js" para darle una ruta a los .vue de "src/pages/"
+
+---------------- Xampp ----------------
+Si vas a hacer una prueba en local
+Cambiar apache del puerto 80 a 8080
+
+Siempre al installar se necestia un:
+* npm i en las rutas de backend y fronend
+
+* crear un .env  para el backend
+  PORT = 80
+  PORT_W = 9000
+  S_IP = "192.168.0.200"
+  P_IP = "192.168.0.183"
+  S_USER= "grupoddfjg" # root 
+  S_CEN= "superMaster7!"
+  S_DB = "ddfjg" # BD
+  
+* Crear un .env para el fronend
+  Web_P_IP="192.168.0.183" # ${import.meta.env.Web_P_IP} `
+
+* Tener una BD:
+CREATE TABLE usuarios (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE,
+    contraseña VARCHAR(255)
+) ENGINE=InnoDB;
+
+CREATE TABLE cards (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    image_url VARCHAR(255),
+    date DATE,
+    CONSTRAINT fk_Usuarios_card FOREIGN KEY (user_id) REFERENCES usuarios(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tabla (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    card_id INT UNSIGNED NOT NULL,
+    datos TEXT,
+    fecha_guardado DATE,
+    CONSTRAINT fk_card_tabla FOREIGN KEY (card_id) REFERENCES cards(id)
+) ENGINE=InnoDB;

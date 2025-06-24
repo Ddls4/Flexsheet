@@ -12,7 +12,6 @@
         />
 
         <q-toolbar-title>
-          Logo:
           <img src="~assets/Captura-de-pantalla-2025-06-21-172759.svg" alt="Logo" class="q-ml-sm" style="height: 30px; width: 30px;" to="`/`" />
           <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
             {{ socketConnected ? 'Conectado' : 'Desconectado' }}
@@ -35,6 +34,10 @@
       bordered
     >
       <div>Quasar: v{{ $q.version }}</div>
+      <div>Socket ID: {{ socketId }}</div>
+      <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
+      <div>IP: {{ ip }}</div>
+     
     </q-drawer>
 
     <q-page-container>
@@ -49,12 +52,13 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { io } from "socket.io-client"
 
+const ip = import.meta.env.VITE_P_IP;
 const socket = ref(null)
 const socketConnected = ref(false)
 const socketId = ref(null)
 
 const iniciarSocket=()=>{
-  socket.value = io('http://192.168.1.10:80', {
+  socket.value = io(`http://${import.meta.env.VITE_P_IP}:80`, {
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,

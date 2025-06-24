@@ -8,23 +8,19 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import morgan from "morgan";
 
-// Obtener rutas del archivo y directorio actual
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Crear servidor Express
 const servidor = express();
-config();
-// Middlewares
-servidor.use(morgan("dev"));
-servidor.use(express.json());
-servidor.use(express.urlencoded({ extended: true }));
-
-servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
-
 // Crear servidor HTTP
 const httpServer = createServer(servidor);
 
+config();
+
+// Middlewares | Configuración del servidor
+servidor.use(morgan("dev"));
+servidor.use(express.json());
+servidor.use(express.urlencoded({ extended: true }));
+servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 servidor.use((req, res, next) => {
     req.setTimeout(30000);  // 30 segundos para recibir la petición
     res.setTimeout(30000);  // 30 segundos para enviar la respuesta
@@ -32,7 +28,7 @@ servidor.use((req, res, next) => {
 });
 
 servidor.use(cors({
-  origin: 'http://192.168.1.10:9000', // o el puerto donde corre tu frontend
+  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`, // o el puerto donde corre tu frontend ${process.env.PORT}
   credentials: true
 }));
 
@@ -51,7 +47,6 @@ const io = new Server(httpServer, {
     credentials: true
   },
 });
-
 // Manejar conexiones WebSocket
 io.on("connection", (socket) => {
   console.log(`Nuevo cliente conectado: ${socket.id}`);
@@ -63,12 +58,9 @@ io.on("connection", (socket) => {
 
 
 // Iniciar servidor
-
 httpServer.listen(process.env.PORT, '0.0.0.0', () => {
-  console.log(`Servidor escuchando en http://localhost:${process.env.PORT}`);
-  console.log(`Servidor escuchando en http://192.168.1.10:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws://localhost:${process.env.PORT_W}`);
-  console.log(`WebSocket disponible en ws://192.168.1.10:${process.env.PORT_W}`); // login
+  console.log(`Servidor escuchando en http://${process.env.P_IP}:${process.env.PORT}`);
+  console.log(`WebSocket disponible en ws://${process.env.P_IP}:${process.env.PORT_W}`); // login
 })
 
 

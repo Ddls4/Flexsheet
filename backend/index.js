@@ -9,33 +9,6 @@ servidor.get("/", (req, res) => {
     })
 
   });
-  
-servidor.post("/register", async (req, res) => {
-    const { username, password }  = req.body;
-    console.log("El usuario en registro es: ",username)
-    try {
-      await registrar(username, password);
-      res.status(200).json({ success: true, message: "Usuario registrado" });
-    } catch (error) {
-      res.status(500).json({ success: false, message: "Error al registrar" });
-    }
-});
-
-servidor.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const user = await login(username, password);
-        req.session.userId = user.id;
-        res.status(200).json({ 
-            success: true, 
-            message: 'Inicio de sesión exitoso',
-            user: { id: user.id, username: user.Nombre } // Devolver datos del usuario
-        });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-});
-
 servidor.get("/user", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
@@ -53,7 +26,31 @@ servidor.get("/user", async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener el usuario' });
     }
 });
-
+  
+servidor.post("/register", async (req, res) => {
+    const { username, password }  = req.body;
+    console.log("El usuario en registro es: ",username)
+    try {
+      await registrar(username, password);
+      res.status(200).json({ success: true, message: "Usuario registrado" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error al registrar" });
+    }
+});
+servidor.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await login(username, password);
+        req.session.userId = user.id;
+        res.status(200).json({ 
+            success: true, 
+            message: 'Inicio de sesión exitoso',
+            user: { id: user.id, username: user.Nombre } // Devolver datos del usuario
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
 servidor.post("/logout", (req, res) => {
     req.session.destroy(err => {
         if (err) {
@@ -64,7 +61,7 @@ servidor.post("/logout", (req, res) => {
     });
 });
 
-// Obtener cards del usuario
+// cards del usuario
 servidor.post('/cards', async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'No autenticado' });
@@ -86,7 +83,6 @@ servidor.post('/cards', async (req, res) => {
         });
     }
 });
-
 servidor.get('/cards', async (req, res) => {
   
   const userId = req.session.userId;
@@ -101,4 +97,31 @@ servidor.get('/cards', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
-  
+// tabla 
+servidor.post('/guardar-tabla', async (req, res) => {
+    const { card_id, rows } = req.body;
+
+    if (!card_id || !Array.isArray(rows)) {
+        return res.status(400).json({ success: false, message: 'Datos incompletos' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+
+        const insertQuery = `
+            INSERT INTO tabla (card_id, datos, fecha_guardado)
+            VALUES (?, ?, CURDATE())
+        `;
+
+        for (const row of rows) {
+            await connection.query(insertQuery, [card_id, JSON.stringify(row)]);
+        }
+
+        connection.release();
+        res.json({ success: true, message: 'Datos guardados correctamente' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al guardar en la base de datos' });
+    }
+});

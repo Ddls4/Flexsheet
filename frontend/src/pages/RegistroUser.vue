@@ -35,7 +35,7 @@
 
     const registerUser = async () => {
         try {
-            const response = await axios.post('http://192.168.1.10:80/register', form.value)
+            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/register`, form.value)
             mensaje.value = 'Usuario registrado con éxito' 
         } catch (error) {
         console.error('Error al registrar:', error.response?.data || error.message)

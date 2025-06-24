@@ -142,7 +142,7 @@
       };
 
       // 2. Enviar al backend (usando axios)
-      const response = await axios.post('http://192.168.1.10:80/cards', cardData, {
+      const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cards`, cardData, {
         withCredentials: true // Importante para la sesión
       });
 

@@ -24,6 +24,8 @@
                     </div>
                     <button @click="addRow">Agregar Fila</button>
                 </div>
+
+                <button @click="guardarTablaEnBD">Guardar en Base de Datos</button>
             </aside>
 
             <main class="col-8">
@@ -108,6 +110,25 @@
     function deleteRow(index) {
         tableData.rows.splice(index, 1);
     }
+    const guardarTablaEnBD = async () => {
+    try {
+        const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
+            card_id: 1, // Aquí deberías pasar el `card_id` real que corresponda
+            rows: tableData.rows
+        }, {
+            withCredentials: true
+        });
+
+        if (response.data.success) {
+            alert('Datos guardados exitosamente');
+        } else {
+            alert('Error al guardar los datos');
+        }
+    } catch (error) {
+        console.error('Error al guardar:', error);
+        alert('Error de conexión al guardar los datos');
+    }
+};
 </script>
 
 <style>
