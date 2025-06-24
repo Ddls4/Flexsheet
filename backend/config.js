@@ -30,17 +30,25 @@ servidor.use((req, res, next) => {
     res.setTimeout(30000);  // 30 segundos para enviar la respuesta
     next();
 });
-/*
+
 servidor.use(cors({
-  origin: 'http://localhost:9000', // o el puerto donde corre tu frontend
+  origin: 'http://192.168.1.10:9000', // o el puerto donde corre tu frontend
   credentials: true
 }));
-*/
+
+servidor.use(session({
+    secret: 'secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+}));
+
 // Configurar Socket.IO en el servidor HTTP
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost", // Permitir conexiones desde cualquier origen
+    origin: "*", // Permitir conexiones desde cualquier origen
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
+    credentials: true
   },
 });
 
@@ -56,17 +64,12 @@ io.on("connection", (socket) => {
 
 // Iniciar servidor
 
-httpServer.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws://localhost:${process.env.PORT}`);
+  console.log(`WebSocket disponible en ws://localhost:${process.env.PORT_W}`);
 })
 
-servidor.use(session({
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
-}));
+
 
 export{
     servidor,

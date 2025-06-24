@@ -54,7 +54,7 @@ const socketConnected = ref(false)
 const socketId = ref(null)
 
 const iniciarSocket=()=>{
-  socket.value = io('http://localhost', {
+  socket.value = io('http://192.168.1.10:80', {
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
