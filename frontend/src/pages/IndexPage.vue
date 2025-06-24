@@ -111,7 +111,7 @@
 
   const fetchUserCards = async () => {
       try {
-        const response = await axios.get('http://localhost:80/cards', {
+        const response = await axios.get('http://192.168.1.10:80/cards', {
           withCredentials: true
         });
         console.log('Cards:', response.data.cards);
@@ -142,7 +142,7 @@
       };
 
       // 2. Enviar al backend (usando axios)
-      const response = await axios.post('http://localhost:80/cards', cardData, {
+      const response = await axios.post('http://192.168.1.10:80/cards', cardData, {
         withCredentials: true // Importante para la sesión
       });
 
