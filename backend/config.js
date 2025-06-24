@@ -25,15 +25,21 @@ servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 // Crear servidor HTTP
 const httpServer = createServer(servidor);
 
+servidor.use((req, res, next) => {
+    req.setTimeout(30000);  // 30 segundos para recibir la petición
+    res.setTimeout(30000);  // 30 segundos para enviar la respuesta
+    next();
+});
+/*
 servidor.use(cors({
   origin: 'http://localhost:9000', // o el puerto donde corre tu frontend
   credentials: true
 }));
-
+*/
 // Configurar Socket.IO en el servidor HTTP
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Permitir conexiones desde cualquier origen
+    origin: "http://localhost", // Permitir conexiones desde cualquier origen
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
   },
 });
@@ -41,9 +47,6 @@ const io = new Server(httpServer, {
 // Manejar conexiones WebSocket
 io.on("connection", (socket) => {
   console.log(`Nuevo cliente conectado: ${socket.id}`);
-
- 
-
   // Manejar desconexión
   socket.on("disconnect", () => {
     console.log(`Cliente desconectado: ${socket.id}`);

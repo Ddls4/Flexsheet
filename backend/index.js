@@ -64,9 +64,6 @@ servidor.post("/logout", (req, res) => {
     });
 });
 
-// Crear una nueva card
-
-
 // Obtener cards del usuario
 servidor.post('/cards', async (req, res) => {
     if (!req.session.userId) {

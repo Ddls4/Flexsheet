@@ -9,13 +9,14 @@ const conexion = mysql.createPool({
   password: process.env.S_CEN,
   waitForConnections: true,
   connectionLimit: 10,
+  connectTimeout: 60000
 });
 
 const registrar = async (username, password) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
         await conexion.query(
-            'INSERT INTO usuarios (Nombre, Contraseña) VALUES (?, ?)',
+            'INSERT INTO usuarios (nombre, contraseña) VALUES (?, ?)',
             [username, hashedPassword]
         );
         console.log("Usuario registrado:", username);
@@ -30,15 +31,17 @@ const registrar = async (username, password) => {
 };
 
 const login = async (username, password) => {
+    console.log(password, password)
     const [rows] = await conexion.query(
-        'SELECT * FROM usuarios WHERE Nombre = ?',
+        'SELECT * FROM usuarios WHERE nombre = ?',
         [username]
     );
 
     if (rows.length === 0) throw new Error('Usuario o contraseña incorrectos');
 
     const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.Contraseña);
+    console.log(password, user.contraseña)
+    const isMatch = await bcrypt.compare(password, user.contraseña);
 
     if (!isMatch) throw new Error('Usuario o contraseña incorrectos');
 
