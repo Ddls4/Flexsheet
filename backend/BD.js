@@ -16,7 +16,7 @@ const registrar = async (username, password) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
         await conexion.query(
-            'INSERT INTO usuarios (Nombre, Contraseña) VALUES (?, ?)',
+            'INSERT INTO usuarios (nombre, contraseña) VALUES (?, ?)',
             [username, hashedPassword]
         );
         console.log("Usuario registrado:", username);
@@ -33,7 +33,7 @@ const registrar = async (username, password) => {
 const login = async (username, password) => {
     console.log(password, password)
     const [rows] = await conexion.query(
-        'SELECT * FROM usuarios WHERE Nombre = ?',
+        'SELECT * FROM usuarios WHERE nombre = ?',
         [username]
     );
 
@@ -41,7 +41,7 @@ const login = async (username, password) => {
 
     const user = rows[0];
     console.log(password, user.contraseña)
-    const isMatch = await bcrypt.compare(password, user.Contraseña);
+    const isMatch = await bcrypt.compare(password, user.contraseña);
 
     if (!isMatch) throw new Error('Usuario o contraseña incorrectos');
 
@@ -50,7 +50,7 @@ const login = async (username, password) => {
 
 const createCard = async (userId, title, date, imageUrl) => {
     const [result] = await conexion.query(
-        'INSERT INTO cards (user_id, title, date, image_url) VALUES (?, ?, ?, ?)',
+        'INSERT INTO cards (user_id, title, date, imageUrl) VALUES (?, ?, ?, ?)',
         [userId, title, date, imageUrl]
     );
     return result.insertId;

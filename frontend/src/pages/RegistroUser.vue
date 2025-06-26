@@ -1,20 +1,20 @@
 <template>
-    <q-page class="flex flex-center bg-grey-2">
+    <q-page class="flex flex-center bg-blue-grey-10">
         <div class="q-pa-md" style="max-width: 400px; width: 100%;">
-            <q-card>
+            <q-card class="bg-blue-grey-8 text-white">
                 <q-card-section>
                     <div class="text-h6">Registro de Usuario</div>
                 </q-card-section>
 
                 <q-card-section>
-                    <q-input filled v-model="form.username" label="Nombre" />
+                    <q-input filled v-model="form.username" label="Nombre" color="blue-grey-1 bg-blue-grey-6" />
                 </q-card-section>
                 <q-card-section>
-                    <q-input filled v-model="form.password" label="Contraseña"  />
+                    <q-input filled v-model="form.password" label="Contraseña" color="blue-grey-1 bg-blue-grey-6"  />
                 </q-card-section>
 
                 <q-card-actions>
-                    <q-btn @click="registerUser" label="Enviar" color="primary" />
+                    <q-btn @click="registerUser" label="Enviar" color="blue-grey-10" />
                 </q-card-actions>
 
                 <q-card-section v-if="mensaje">

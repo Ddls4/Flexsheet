@@ -84,9 +84,7 @@ servidor.post('/cards', async (req, res) => {
     }
 });
 servidor.get('/cards', async (req, res) => {
-  
   const userId = req.session.userId;
-  console.log("Obteniendo cards para el usuario:", userId);
   if (!userId) return res.status(401).json({ error: 'No autorizado' });
 
   try {
@@ -97,6 +95,30 @@ servidor.get('/cards', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+servidor.post('/cardEliminar', async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Falta el ID de la card' });
+  }
+
+  try {
+    const [result] = await conexion.query('DELETE FROM cards WHERE id = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Card no encontrada' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error eliminando la card:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+
+
 // tabla 
 servidor.post('/guardar-tabla', async (req, res) => {
     const { card_id, rows } = req.body;
@@ -106,18 +128,15 @@ servidor.post('/guardar-tabla', async (req, res) => {
     }
 
     try {
-        const connection = await db.getConnection();
-
         const insertQuery = `
             INSERT INTO tabla (card_id, datos, fecha_guardado)
             VALUES (?, ?, CURDATE())
         `;
 
         for (const row of rows) {
-            await connection.query(insertQuery, [card_id, JSON.stringify(row)]);
+            await conexion.query(insertQuery, [card_id, JSON.stringify(row)]);
         }
 
-        connection.release();
         res.json({ success: true, message: 'Datos guardados correctamente' });
 
     } catch (error) {

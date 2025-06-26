@@ -1,6 +1,6 @@
 <template>
-  <q-page class=" flex   bg-grey-2" >
-    <div class="column q-pa-md" style="width: 100%; height: 100vh; background-color: rgb(33, 37, 41); ">
+  <q-page class=" flex  " >
+    <div class="column q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
 
       <div class="col-6">
         <div class="text-center q-mb-md" style="color: white;">
@@ -28,18 +28,19 @@
         </div>
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md"> 
-          <div v-for="(card, index) in cards" :key="index" class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <q-card class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true }"
+          <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
+            <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
             @click="cardClicked(index)">
               
-              <q-card-section>
+              <q-card-section style="padding: 0;">
                 <q-img 
-                  v-if="card.imageUrl" 
-                  :src="card.imageUrl"
-                  style="height: 100px; margin-bottom: 10px;"
-                />
-                <div class="text-h6">{{ card.title }}</div>
-                <div class="text-subtitle2">Creado: {{ card.date }}</div>
+                  v-if="card.imageUrl ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
+                  :src="card.imageUrl ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
+                  style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
+                >
+                <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
+                <!-- <div class="text-subtitle2">Creado: {{ card.date }}</div> -->
+                </q-img>
               </q-card-section>
 
             </q-card>
@@ -120,7 +121,7 @@
         cards.value = response.data.cards.map(card => ({
           id: card.id,
           title: card.title,
-          date: card.created_at, // ajustá si se llama distinto
+          //date: card.date ? new Date(card.date).toISOString().split('T')[0] : formattedDate, 
           imageUrl: card.imageUrl
         }));
 
@@ -128,7 +129,6 @@
         console.error('Error al obtener las cards:', error.response?.data || error.message);
       }
   };
-
   const handleSubmit = async () => {
     try {
       // 1. Preparar los datos de la card
@@ -150,12 +150,9 @@
       if (response.data.success) {
         cards.value.push({
           id: response.data.cardId, // ID generado por MySQL
-          name: cardData.title,
-          date: cardData.date,
+          title: cardData.title,
           imageUrl: cardData.imageUrl
         });
-        
-        console.log('Card guardada en BD:', response.data);
         CerrarDialogCreate();
       }
     } catch (error) {
@@ -186,11 +183,21 @@
       eliminarCard();
       showConfirmDialog.value = false;
   };
-  const eliminarCard = () => {
+  const eliminarCard = async () => {
       if (selectedCardIndex.value !== null) {
-        cards.value.splice(selectedCardIndex.value, 1);
-        selectedCardIndex.value = null; // Limpiar selección luego de eliminar
-      }
+    const card = cards.value[selectedCardIndex.value];
+
+    try {
+      await axios.post('http://192.168.1.10:80/cardEliminar', {
+        id: card.id // suponiendo que `card` tiene una propiedad `id`
+      });
+
+      cards.value.splice(selectedCardIndex.value, 1);
+      selectedCardIndex.value = null;
+    } catch (error) {
+      console.error('Error al eliminar la card:', error);
+    }
+  }
   };
     
   onMounted(() => {

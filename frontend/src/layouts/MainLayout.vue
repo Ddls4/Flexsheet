@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
-      <q-toolbar>
+      <q-toolbar class=" bg-blue-grey-8 text-white">
         <q-btn
           flat
           dense
@@ -11,17 +11,18 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title>
-          <img src="~assets/Captura-de-pantalla-2025-06-21-172759.svg" alt="Logo" class="q-ml-sm" style="height: 30px; width: 30px;" to="`/`" />
+        <q-toolbar-title class="" >
+          <router-link to="/" >
+            <img src="~assets/Captura-de-pantalla-2025-06-21-172759.svg" alt="Logo" style="height: 30px; width: 30px;" />
+          </router-link>
           <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
             {{ socketConnected ? 'Conectado' : 'Desconectado' }}
           </q-badge>
         </q-toolbar-title>
 
         <div> 
-          <q-btn label="Inicio" color="primary" :to="`/`" />
-          <q-btn label="Registro" color="primary" :to="`/registro`" />
-          <q-btn label="Login" color="primary" :to="`/Login`" />
+          <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" />
+          <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
         </div>
         
         
@@ -32,6 +33,7 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
+      class="bg-blue-grey-8 text-white "
     >
       <div>Quasar: v{{ $q.version }}</div>
       <div>Socket ID: {{ socketId }}</div>
