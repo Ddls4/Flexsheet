@@ -34,7 +34,7 @@ Siempre al installar se necestia un:
   S_DB = "ddfjg" # BD
   
 * Crear un .env para el fronend
-  VITE_P_IP="192.168.0.183" # ${import.meta.env.Web_P_IP} `
+  VITE_P_IP="192.168.0.183" # ${import.meta.env.VITE_P_IP} `
 
 * Tener una BD:
 CREATE TABLE usuarios (
@@ -48,7 +48,7 @@ CREATE TABLE cards (
     user_id INT UNSIGNED NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    imageUrl VARCHAR(255),
+    imagenURL VARCHAR(255),
     date DATE,
     CONSTRAINT fk_Usuarios_card FOREIGN KEY (user_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;

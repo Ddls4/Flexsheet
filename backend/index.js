@@ -68,8 +68,8 @@ servidor.post('/cards', async (req, res) => {
     }
 
     try {
-        const { title, date, imageUrl } = req.body;
-        const cardId = await createCard(req.session.userId, title, date, imageUrl);
+        const { title, date, imagenURL } = req.body;
+        const cardId = await createCard(req.session.userId, title, date, imagenURL);
         res.status(201).json({ 
             success: true, 
             cardId,
@@ -85,9 +85,7 @@ servidor.post('/cards', async (req, res) => {
 });
 servidor.get('/cards', async (req, res) => {
   const userId = req.session.userId;
-  console.log(userId)
   if (!userId) return res.status(401).json({ error: 'No autorizado' });
-
   try {
     const cards = await getCardsByUser(userId);
     console.log(cards)

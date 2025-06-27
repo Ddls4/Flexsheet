@@ -75,7 +75,7 @@
 
     onMounted(async () => {
         try {
-            const response = await axios.get('http://${import.meta.env.Web_P_IP}:80/user', { withCredentials: true });
+            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/user`, { withCredentials: true });
             if (response.data.success) {
                 user.value = response.data.user;
             }

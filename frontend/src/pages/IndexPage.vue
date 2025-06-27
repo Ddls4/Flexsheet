@@ -34,13 +34,14 @@
               
               <q-card-section style="padding: 0;">
                 <q-img 
-                  v-if="card.imageUrl ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
-                  :src="card.imageUrl ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
+                  v-if="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
+                  :src="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
                   style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
                 >
                 <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
-                <!-- <div class="text-subtitle2">Creado: {{ card.date }}</div> -->
+                
                 </q-img>
+                <div class="text-subtitle2">Creado: {{ card.date }}</div>
               </q-card-section>
 
             </q-card>
@@ -55,7 +56,6 @@
     
     <!-- Diálog para crear nueva Card -->
     <q-dialog v-model="showCreateDialog" persistent> <!-- v-model="showCreateDialog" -->
-
       <q-card style="min-width: 350px">
         <q-card-section>
           <div class="text-h6">Crear Nueva Card</div>
@@ -66,7 +66,7 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imageUrl" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
+          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
@@ -105,14 +105,15 @@
   const showCreateDialog = ref(false);
   const showConfirmDialog = ref(false);
   const cards = ref([]);
-  const newCard = ref({title: '',imageUrl: ''});
+  const newCard = ref({title: '',imagenURL: ''});
 
   const selectedCardIndex = ref(null);
   const selectionMode = ref(false);
 
   const fetchUserCards = async () => {
       try {
-        const response = await axios.get('http://${import.meta.env.Web_P_IP}:80/cards', {
+        console.log(`http://${import.meta.env.VITE_P_IP}:80/cards`);
+        const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/cards`, {
           withCredentials: true
         });
         console.log('Cards:', response.data.cards);
@@ -122,7 +123,7 @@
           id: card.id,
           title: card.title,
           //date: card.date ? new Date(card.date).toISOString().split('T')[0] : formattedDate, 
-          imageUrl: card.imageURL
+          imagenURL: card.imagenURL
         }));
 
       } catch (error) {
@@ -138,7 +139,7 @@
       const cardData = {
         title: newCard.value.title,
         date: formattedDate,
-        imageUrl: newCard.value.imageURL
+        imagenURL: newCard.value.imagenURL
       };
 
       // 2. Enviar al backend (usando axios)
@@ -151,7 +152,7 @@
         cards.value.push({
           id: response.data.cardId, // ID generado por MySQL
           title: cardData.title,
-          imageUrl: cardData.imageUrl
+          imagenURL: cardData.imagenURL
         });
         CerrarDialogCreate();
       }
@@ -188,7 +189,7 @@
     const card = cards.value[selectedCardIndex.value];
 
     try {
-      await axios.post('http://${import.meta.env.VITE_P_IP}:80/cardEliminar', {
+      await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cardEliminar`, {
         id: card.id // suponiendo que `card` tiene una propiedad `id`
       });
 
