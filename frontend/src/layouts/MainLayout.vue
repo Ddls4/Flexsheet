@@ -13,7 +13,7 @@
 
         <q-toolbar-title class="" >
           <router-link to="/" >
-            <img src="~assets/Captura-de-pantalla-2025-06-21-172759.svg" alt="Logo" style="height: 30px; width: 30px;" />
+            <img src="~assets/icon.svg" alt="Logo" style="height: 30px; width: 30px;" />
           </router-link>
           <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
             {{ socketConnected ? 'Conectado' : 'Desconectado' }}

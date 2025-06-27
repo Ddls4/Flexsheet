@@ -112,7 +112,7 @@
 
   const fetchUserCards = async () => {
       try {
-        const response = await axios.get('http://192.168.1.10:80/cards', {
+        const response = await axios.get('http://${import.meta.env.Web_P_IP}:80/cards', {
           withCredentials: true
         });
         console.log('Cards:', response.data.cards);
@@ -122,7 +122,7 @@
           id: card.id,
           title: card.title,
           //date: card.date ? new Date(card.date).toISOString().split('T')[0] : formattedDate, 
-          imageUrl: card.imageUrl
+          imageUrl: card.imageURL
         }));
 
       } catch (error) {
@@ -138,7 +138,7 @@
       const cardData = {
         title: newCard.value.title,
         date: formattedDate,
-        imageUrl: newCard.value.imageUrl
+        imageUrl: newCard.value.imageURL
       };
 
       // 2. Enviar al backend (usando axios)
@@ -188,7 +188,7 @@
     const card = cards.value[selectedCardIndex.value];
 
     try {
-      await axios.post('http://192.168.1.10:80/cardEliminar', {
+      await axios.post('http://${import.meta.env.VITE_P_IP}:80/cardEliminar', {
         id: card.id // suponiendo que `card` tiene una propiedad `id`
       });
 

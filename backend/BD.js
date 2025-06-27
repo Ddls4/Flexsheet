@@ -49,8 +49,9 @@ const login = async (username, password) => {
 };
 
 const createCard = async (userId, title, date, imageUrl) => {
+    console.log(userId, title, date, imageUrl)
     const [result] = await conexion.query(
-        'INSERT INTO cards (user_id, title, date, imageUrl) VALUES (?, ?, ?, ?)',
+        'INSERT INTO cards (user_id, title, date, imagenURL) VALUES (?, ?, ?, ?)',
         [userId, title, date, imageUrl]
     );
     return result.insertId;

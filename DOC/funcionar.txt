@@ -34,7 +34,7 @@ Siempre al installar se necestia un:
   S_DB = "ddfjg" # BD
   
 * Crear un .env para el fronend
-  Web_P_IP="192.168.0.183" # ${import.meta.env.Web_P_IP} `
+  VITE_P_IP="192.168.0.183" # ${import.meta.env.Web_P_IP} `
 
 * Tener una BD:
 CREATE TABLE usuarios (

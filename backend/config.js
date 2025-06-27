@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
 // Iniciar servidor
 httpServer.listen(process.env.PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://${process.env.P_IP}:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws://${process.env.P_IP}:${process.env.PORT_W}`); // login
+  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`); // login
 })
 
 

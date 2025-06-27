@@ -85,10 +85,12 @@ servidor.post('/cards', async (req, res) => {
 });
 servidor.get('/cards', async (req, res) => {
   const userId = req.session.userId;
+  console.log(userId)
   if (!userId) return res.status(401).json({ error: 'No autorizado' });
 
   try {
     const cards = await getCardsByUser(userId);
+    console.log(cards)
     res.json({ cards });
   } catch (err) {
     console.error('Error al obtener las cards:', err);
