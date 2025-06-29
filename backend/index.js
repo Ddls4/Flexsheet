@@ -1,6 +1,29 @@
 import { servidor,io  } from "./config.js";
 import { registrar, login, createCard, getCardsByUser, conexion } from "./BD.js";
 
+io.on("connection", (socket) => {
+  console.log(`Nuevo cliente conectado: ${socket.id}`);
+  // Manejar desconexión
+  socket.on("disconnect", () => {
+    console.log(`Cliente desconectado: ${socket.id}`);
+  });
+
+  socket.on("solicitar_cards", async () => {
+    const userId = socket.request.session.userId;
+    if (!userId) {
+      return socket.emit("error_cards", { error: "No autorizado" });
+    }
+
+    try {
+      const cards = await getCardsByUser(userId);
+      socket.emit("cards_usuario", { cards });
+    } catch (error) {
+      console.error("Error al obtener las cards:", error);
+      socket.emit("error_cards", { error: "Error del servidor" });
+    }
+  });
+
+});
 servidor.get("/", (req, res) => {
    res.sendFile(path.join(__dirname, "index.html"));
 
@@ -83,18 +106,8 @@ servidor.post('/cards', async (req, res) => {
         });
     }
 });
-servidor.get('/cards', async (req, res) => {
-  const userId = req.session.userId;
-  if (!userId) return res.status(401).json({ error: 'No autorizado' });
-  try {
-    const cards = await getCardsByUser(userId);
-    console.log(cards)
-    res.json({ cards });
-  } catch (err) {
-    console.error('Error al obtener las cards:', err);
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
+
+
 servidor.post('/cardEliminar', async (req, res) => {
   const { id } = req.body;
 

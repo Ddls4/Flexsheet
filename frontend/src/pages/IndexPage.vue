@@ -99,6 +99,7 @@
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router'
   import axios from 'axios'
+  import { io } from "socket.io-client";
 
   const router = useRouter()
 
@@ -109,26 +110,24 @@
 
   const selectedCardIndex = ref(null);
   const selectionMode = ref(false);
+  const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+    withCredentials: true
+  });
 
   const fetchUserCards = async () => {
-      try {
-        console.log(`http://${import.meta.env.VITE_P_IP}:80/cards`);
-        const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/cards`, {
-          withCredentials: true
-        });
-        console.log('Cards:', response.data.cards);
+  socket.emit("solicitar_cards");
 
-        // Guardar en el estado
-        cards.value = response.data.cards.map(card => ({
-          id: card.id,
-          title: card.title,
-          //date: card.date ? new Date(card.date).toISOString().split('T')[0] : formattedDate, 
-          imagenURL: card.imagenURL
-        }));
+    socket.on("cards_usuario", ({ cards: lista }) => {
+      cards.value = lista.map(card => ({
+        id: card.id,
+        title: card.title,
+        imagenURL: card.imagenURL
+      }));
+    });
 
-      } catch (error) {
-        console.error('Error al obtener las cards:', error.response?.data || error.message);
-      }
+    socket.on("error_cards", (error) => {
+      console.error("Error al obtener las cards:", error);
+    });
   };
   const handleSubmit = async () => {
     try {

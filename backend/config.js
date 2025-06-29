@@ -32,29 +32,27 @@ servidor.use(cors({
   credentials: true
 }));
 
-servidor.use(session({
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
-}));
+const sessionMiddleware = session({
+  secret: "secreto123",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+});
+ servidor.use(sessionMiddleware);
 
 // Configurar Socket.IO en el servidor HTTP
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Permitir conexiones desde cualquier origen
+    origin: `http://${process.env.P_IP}:${process.env.PORT_W}`, // Permitir conexiones desde cualquier origen
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
     credentials: true
   },
 });
-// Manejar conexiones WebSocket
-io.on("connection", (socket) => {
-  console.log(`Nuevo cliente conectado: ${socket.id}`);
-  // Manejar desconexión
-  socket.on("disconnect", () => {
-    console.log(`Cliente desconectado: ${socket.id}`);
-  });
+ io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
 });
+// Manejar conexiones WebSocket
+
 
 
 // Iniciar servidor
