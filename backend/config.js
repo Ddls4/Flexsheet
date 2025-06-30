@@ -10,8 +10,8 @@ import morgan from "morgan";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const servidor = express();
-// Crear servidor HTTP
 const httpServer = createServer(servidor);
 
 config();
@@ -28,7 +28,7 @@ servidor.use((req, res, next) => {
 });
 
 servidor.use(cors({
-  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`, // o el puerto donde corre tu frontend ${process.env.PORT}
+  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
   credentials: true
 }));
 
@@ -42,11 +42,12 @@ servidor.use(session({
 // Configurar Socket.IO en el servidor HTTP
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Permitir conexiones desde cualquier origen
-    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
+    origin: "*", 
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   },
 });
+
 // Manejar conexiones WebSocket
 io.on("connection", (socket) => {
   console.log(`Nuevo cliente conectado: ${socket.id}`);
@@ -60,7 +61,7 @@ io.on("connection", (socket) => {
 // Iniciar servidor
 httpServer.listen(process.env.PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://${process.env.P_IP}:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`); // login
+  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`);
 })
 
 

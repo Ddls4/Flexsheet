@@ -1,14 +1,10 @@
 import { servidor,io  } from "./config.js";
-import { registrar, login, createCard, getCardsByUser, conexion } from "./BD.js";
+import { registrar, login, createCard, getCardsByUser, guardarTabla, cargarTabla, eliminarCard, conexion } from "./BD.js";
 
 servidor.get("/", (req, res) => {
    res.sendFile(path.join(__dirname, "index.html"));
-
-   io.emit("comprar_peliculas",{
-       peliculas:[{nombre:"pelicula1"}] 
-    })
-
   });
+// usuario
 servidor.get("/user", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
@@ -26,7 +22,6 @@ servidor.get("/user", async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener el usuario' });
     }
 });
-  
 servidor.post("/register", async (req, res) => {
     const { username, password }  = req.body;
     console.log("El usuario en registro es: ",username)
@@ -60,13 +55,11 @@ servidor.post("/logout", (req, res) => {
         res.status(200).json({ success: true, message: 'Sesión cerrada' });
     });
 });
-
-// cards del usuario
+// cards
 servidor.post('/cards', async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'No autenticado' });
     }
-
     try {
         const { title, date, imagenURL } = req.body;
         const cardId = await createCard(req.session.userId, title, date, imagenURL);
@@ -96,87 +89,47 @@ servidor.get('/cards', async (req, res) => {
 });
 servidor.post('/cardEliminar', async (req, res) => {
   const { id } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ error: 'Falta el ID de la card' });
-  }
-
   try {
-    const [result] = await conexion.query('DELETE FROM cards WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Card no encontrada' });
-    }
-
+    await eliminarCard(id);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error eliminando la card:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error('Error eliminando la card:', err.message);
+    if (err.message === 'Falta el ID de la card') {
+      res.status(400).json({ error: err.message });
+    } else if (err.message === 'Card no encontrada') {
+      res.status(404).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
   }
 });
-
-
-
-
 // tabla 
 servidor.post('/guardar-tabla', async (req, res) => {
     console.log("Guardando tabla");
     const { card_id, columns, rows } = req.body;
-
-    if (!card_id || !Array.isArray(rows) || !Array.isArray(columns)) {
-        return res.status(400).json({ success: false, message: 'Datos incompletos' });
-    }
-
     try {
-        const datosJSON = JSON.stringify({ columns, rows });
-
-        const query = `
-            INSERT INTO tabla (card_id, datos, fecha_guardado)
-            VALUES (?, ?, CURDATE())
-            ON DUPLICATE KEY UPDATE datos = VALUES(datos), fecha_guardado = CURDATE()
-        `;
-
-        await conexion.query(query, [card_id, datosJSON]);
-
+        await guardarTabla({ card_id, columns, rows });
         res.json({ success: true, message: 'Datos guardados correctamente' });
     } catch (error) {
-        console.error('Error al guardar en la base de datos:', error);
-        res.status(500).json({ success: false, message: 'Error del servidor' });
+        console.error('Error al guardar en la base de datos:', error.message);
+        const status = error.message === 'Datos incompletos' ? 400 : 500;
+        res.status(status).json({ success: false, message: error.message });
     }
 });
-
 servidor.get('/tabla/:title', async (req, res) => {
     const { title } = req.params;
     console.log(`Consultando /tabla/${title}`);
-    if (!title) {
-        return res.status(400).json({ message: 'Título requerido' });
-    }
-
     try {
-        const [cardResult] = await conexion.query(
-            'SELECT id FROM cards WHERE title = ?',
-            [title]
-        );
-
-        if (cardResult.length === 0) {
-            return res.status(404).json({ message: 'Card no encontrada' });
-        }
-
-        const card_id = cardResult[0].id;
-
-        const [tablaResult] = await conexion.query(
-            'SELECT datos FROM tabla WHERE card_id = ?',
-            [card_id]
-        );
-
-        if (tablaResult.length === 0) {
-            return res.json({ columns: [], rows: [] }); // tabla vacía
-        }
-
-        const datos = JSON.parse(tablaResult[0].datos);
-        return res.json(datos); // { columns: [], rows: [] }
+        const datos = await cargarTabla(title);
+        res.json(datos);
     } catch (err) {
-        console.error('Error al consultar la tabla:', err);
-        return res.status(500).json({ message: 'Error del servidor' });
+        console.error('Error al consultar la tabla:', err.message);
+        if (err.message === 'Título requerido') {
+            return res.status(400).json({ message: err.message });
+        } else if (err.message === 'Card no encontrada') {
+            return res.status(404).json({ message: err.message });
+        } else {
+            return res.status(500).json({ message: 'Error del servidor' });
+        }
     }
 });
