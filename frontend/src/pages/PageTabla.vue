@@ -62,7 +62,11 @@
 <script setup>
     import { ref,reactive, onMounted } from 'vue';
     import axios from 'axios';
+    import { useRoute } from 'vue-router'
 
+    const route = useRoute()
+    const cardId = ref(null)
+    const user = ref(null);
     const columnCount = ref(0);
     const columnNames = ref([]);
     const tableData = reactive({
@@ -74,15 +78,31 @@
 
 
     onMounted(async () => {
+
+        const title = route.query.name
+        if (!title) return
+
         try {
-            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/user`, { withCredentials: true });
-            if (response.data.success) {
-                user.value = response.data.user;
+            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/tabla/${title}`)
+            console.log('Tabla cargada:', response.data)
+
+            const data = response.data;
+
+            // Si recibimos un array plano (una sola fila sin columnas), lo adaptamos:
+            if (Array.isArray(data)) {
+                // Autogenerar columnas: Col1, Col2, etc.
+                const generatedColumns = data.map((_, i) => `Col${i + 1}`);
+                tableData.columns = generatedColumns;
+                tableData.rows = [data]; // Una sola fila
+            } else {
+                Object.assign(tableData, data);
             }
+
         } catch (error) {
-            console.error('Error al obtener el usuario:', error);
+            console.error('Error al cargar la tabla:', error)
         }
     });
+
     function generateColumnInputs() {
         columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');
     }
@@ -111,24 +131,32 @@
         tableData.rows.splice(index, 1);
     }
     const guardarTablaEnBD = async () => {
-    try {
-        const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
-            card_id: 1, // Aquí deberías pasar el `card_id` real que corresponda
-            rows: tableData.rows
-        }, {
-            withCredentials: true
-        });
-
-        if (response.data.success) {
-            alert('Datos guardados exitosamente');
-        } else {
-            alert('Error al guardar los datos');
+        console.log('Guardando tabla en BD...', route.query.id );
+        if (!route.query.id ) {
+            alert('No se pudo determinar el ID de la card.');
+            return;
         }
-    } catch (error) {
-        console.error('Error al guardar:', error);
-        alert('Error de conexión al guardar los datos');
+
+        try {
+            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
+                card_id: route.query.id ,
+                columns: tableData.columns,
+                rows: tableData.rows
+            }, {
+                withCredentials: true
+            });
+
+            if (response.data.success) {
+                alert('Datos guardados exitosamente');
+            } else {
+                alert('Error al guardar los datos');
+            }
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            alert('Error de conexión al guardar los datos');
+        }
     }
-};
+
 </script>
 
 <style>

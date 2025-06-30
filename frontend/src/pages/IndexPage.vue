@@ -177,7 +177,7 @@
       } else {
         // modo normal: redirigir a /tabla pasando la card o su nombre
         const card = cards.value[index];
-        router.push({ path: '/tabla', query: { name: card.title } });
+        router.push({ path: '/tabla', query: { name: card.title, id: card.id } });
       }
   };
   const confirmarEliminar = () => {

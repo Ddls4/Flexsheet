@@ -47,7 +47,7 @@ CREATE TABLE cards (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT,
+    INFO TEXT,
     imagenURL VARCHAR(255),
     date DATE,
     CONSTRAINT fk_Usuarios_card FOREIGN KEY (user_id) REFERENCES usuarios(id)
@@ -55,7 +55,7 @@ CREATE TABLE cards (
 
 CREATE TABLE tabla (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    cards_id INT UNSIGNED NOT NULL,
+    card_id INT UNSIGNED NOT NULL,
     datos TEXT,
     fecha_guardado DATE,
     CONSTRAINT fk_card_tabla FOREIGN KEY (card_id) REFERENCES cards(id)

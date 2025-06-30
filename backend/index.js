@@ -88,7 +88,6 @@ servidor.get('/cards', async (req, res) => {
   if (!userId) return res.status(401).json({ error: 'No autorizado' });
   try {
     const cards = await getCardsByUser(userId);
-    console.log(cards)
     res.json({ cards });
   } catch (err) {
     console.error('Error al obtener las cards:', err);
@@ -121,26 +120,63 @@ servidor.post('/cardEliminar', async (req, res) => {
 
 // tabla 
 servidor.post('/guardar-tabla', async (req, res) => {
-    const { card_id, rows } = req.body;
+    console.log("Guardando tabla");
+    const { card_id, columns, rows } = req.body;
 
-    if (!card_id || !Array.isArray(rows)) {
+    if (!card_id || !Array.isArray(rows) || !Array.isArray(columns)) {
         return res.status(400).json({ success: false, message: 'Datos incompletos' });
     }
 
     try {
-        const insertQuery = `
+        const datosJSON = JSON.stringify({ columns, rows });
+
+        const query = `
             INSERT INTO tabla (card_id, datos, fecha_guardado)
             VALUES (?, ?, CURDATE())
+            ON DUPLICATE KEY UPDATE datos = VALUES(datos), fecha_guardado = CURDATE()
         `;
 
-        for (const row of rows) {
-            await conexion.query(insertQuery, [card_id, JSON.stringify(row)]);
-        }
+        await conexion.query(query, [card_id, datosJSON]);
 
         res.json({ success: true, message: 'Datos guardados correctamente' });
-
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error al guardar en la base de datos' });
+        console.error('Error al guardar en la base de datos:', error);
+        res.status(500).json({ success: false, message: 'Error del servidor' });
+    }
+});
+
+servidor.get('/tabla/:title', async (req, res) => {
+    const { title } = req.params;
+    console.log(`Consultando /tabla/${title}`);
+    if (!title) {
+        return res.status(400).json({ message: 'Título requerido' });
+    }
+
+    try {
+        const [cardResult] = await conexion.query(
+            'SELECT id FROM cards WHERE title = ?',
+            [title]
+        );
+
+        if (cardResult.length === 0) {
+            return res.status(404).json({ message: 'Card no encontrada' });
+        }
+
+        const card_id = cardResult[0].id;
+
+        const [tablaResult] = await conexion.query(
+            'SELECT datos FROM tabla WHERE card_id = ?',
+            [card_id]
+        );
+
+        if (tablaResult.length === 0) {
+            return res.json({ columns: [], rows: [] }); // tabla vacía
+        }
+
+        const datos = JSON.parse(tablaResult[0].datos);
+        return res.json(datos); // { columns: [], rows: [] }
+    } catch (err) {
+        console.error('Error al consultar la tabla:', err);
+        return res.status(500).json({ message: 'Error del servidor' });
     }
 });
