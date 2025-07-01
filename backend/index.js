@@ -13,7 +13,6 @@ io.on("connection", (socket) => {
     if (!userId) {
       return socket.emit("error_cards", { error: "No autorizado" });
     }
-
     try {
       const cards = await getCardsByUser(userId);
       socket.emit("cards_usuario", { cards });
@@ -40,14 +39,13 @@ io.on("connection", (socket) => {
 });
 
 servidor.get("/", (req, res) => {
-   res.sendFile(path.join(__dirname, "index.html"));
-  });
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 // usuario
 servidor.get("/user", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
-
     try {
         const query = 'SELECT id, Nombre FROM usuarios WHERE id = ?';
         conexion.query(query, [req.session.userId], (err, results) => {
@@ -60,6 +58,7 @@ servidor.get("/user", async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener el usuario' });
     }
 });
+
 servidor.post("/register", async (req, res) => {
     const { username, password }  = req.body;
     console.log("El usuario en registro es: ",username)
@@ -84,15 +83,7 @@ servidor.post("/login", async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
-servidor.post("/logout", (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Error al cerrar sesión' });
-        }
-        res.clearCookie('connect.sid'); // Asegúrate de que el nombre de la cookie coincida
-        res.status(200).json({ success: true, message: 'Sesión cerrada' });
-    });
-});
+
 // cards
 servidor.post('/cards', async (req, res) => {
     if (!req.session.userId) {
@@ -142,24 +133,5 @@ servidor.post('/guardar-tabla', async (req, res) => {
         console.error('Error al guardar en la base de datos:', error.message);
         const status = error.message === 'Datos incompletos' ? 400 : 500;
         res.status(status).json({ success: false, message: error.message });
-    }
-});
-servidor.get('/tabla', async (req, res) => {
-    const { name: title, id } = req.query;
-    
-    console.log(`Consultando /tabla con title=${title} e id=${id}`);
-
-    try {
-        const datos = await cargarTabla(title, id);
-        res.json(datos);
-    } catch (err) {
-        console.error('Error al consultar la tabla:', err.message);
-        if (err.message === 'Título o ID requerido') {
-            return res.status(400).json({ message: err.message });
-        } else if (err.message === 'Card no encontrada') {
-            return res.status(404).json({ message: err.message });
-        } else {
-            return res.status(500).json({ message: 'Error del servidor' });
-        }
     }
 });

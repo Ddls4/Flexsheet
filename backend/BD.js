@@ -35,15 +35,11 @@ const login = async (username, password) => {
         'SELECT * FROM usuarios WHERE nombre = ?',
         [username]
     );
-
     if (rows.length === 0) throw new Error('Usuario o contraseña incorrectos');
-
     const user = rows[0];
     console.log(password, user.contraseña)
     const isMatch = await bcrypt.compare(password, user.contraseña);
-
     if (!isMatch) throw new Error('Usuario o contraseña incorrectos');
-
     return user;
 };
 const createCard = async (userId, title, date, imagenURL) => {
@@ -66,24 +62,19 @@ const guardarTabla = async ({ card_id, columns, rows }) => {
     if (!card_id || !Array.isArray(rows) || !Array.isArray(columns)) {
         throw new Error('Datos incompletos');
     }
-
     const datosJSON = JSON.stringify({ columns, rows });
-
     const query = `
         INSERT INTO tabla (cards_id, datos, fecha_guardado)
         VALUES (?, ?, CURDATE())
         ON DUPLICATE KEY UPDATE datos = VALUES(datos), fecha_guardado = CURDATE()
     `;
-
     await conexion.query(query, [card_id, datosJSON]);
 };
 const cargarTabla = async (title, id = null) => {
     if (!title && !id) {
         throw new Error('Título o ID requerido');
     }
-
     let cards_id;
-
     if (id) {
         cards_id = id;
     } else {
@@ -91,30 +82,22 @@ const cargarTabla = async (title, id = null) => {
             'SELECT id FROM cards WHERE title = ?',
             [title]
         );
-
         if (cardResult.length === 0) {
             throw new Error('Card no encontrada');
         }
-
         console.log(cardResult);  // <-- Aquí sí
-
         cards_id = cardResult[0].id;
     }
-
     const [tablaResult] = await conexion.query(
         'SELECT datos FROM tabla WHERE cards_id = ?',
         [cards_id]
     );
-
     if (tablaResult.length === 0) {
         return { columns: [], rows: [] }; // tabla vacía
     }
-
     console.log(tablaResult);
-
     const datos = JSON.parse(tablaResult[0].datos);
     console.log(datos);
-
     return datos;
 };
 const eliminarCard = async (id) => {
@@ -125,11 +108,8 @@ if (!id) {
   if (result.affectedRows === 0) {
     throw new Error('Card no encontrada');
   }
-
   return true;
 }
-
-// raro /user y /logout 
 
 export {
     registrar,

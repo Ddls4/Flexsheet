@@ -1,262 +1,306 @@
 <template>
-    <div class="main">
-        <div class="row">
-            <aside class="sidebar border-right col-3 menu">
-                <h2>Configuración</h2>
-                <!-- Column Configuration -->
-                <div>
-                    <label for="columnCount">Cantidad de Columnas:</label>
-                    <q-input v-model.number="columnCount" type="number" />
-                    <button @click="generateColumnInputs">Generar Columnas</button>
-                </div>
+  <q-layout view="lHh Lpr lFf" class="bg-grey-9">
+    <q-page-container>
+      <q-page class="q-pa-md">
+        <div class="row q-col-gutter-md">
+  
+          <q-card class="col-md-3 col-sm-12 bg-grey-8 text-white">
+            <q-card-section>
+              <h2 class="text-h5 q-mt-none q-mb-md">Configuración</h2>
 
-                <!-- Column Name Inputs -->
-                <div v-for="(name, index) in columnNames" :key="index">
-                    <input v-model="columnNames[index]" :placeholder="`Columna ${index + 1}`" />
-                </div>
-                <!-- Create Table -->
-                <button @click="createTable">Crear Tabla</button>
-                <!-- Row Inputs -->
+              <q-form @submit.prevent="generateColumnInputs" class="q-gutter-md">
+                <q-input
+                  filled
+                  dark
+                  color="white"
+                  v-model.number="columnCount"
+                  type="number"
+                  label="Cantidad de Columnas"
+                  min="1"
+                  :rules="[val => val > 0 || 'Debe tener al menos 1 columna']"
+                />
+                
+                <q-btn 
+                  label="Generar Columnas" 
+                  type="submit"
+                  color="primary"
+                  class="full-width"
+                />
+              </q-form>
+
+              <div v-if="columnNames.length" class="q-mt-lg">
+                <h3 class="text-h6 q-mb-sm">Nombres de Columnas</h3>
+                <q-input
+                  v-for="(name, index) in columnNames"
+                  :key="index"
+                  v-model="columnNames[index]"
+                  dark
+                  filled
+                  color="white"
+                  :label="`Columna ${index + 1}`"
+                  class="q-mb-sm"
+                />
+                
+                <q-btn 
+                  label="Crear Tabla" 
+                  @click="createTable"
+                  color="positive"
+                  class="full-width q-mt-md"
+                />
+              </div>
+
+              <div v-if="tableData.columns.length" class="q-mt-lg">
+                <h3 class="text-h6 q-mb-sm">Agregar Fila</h3>
+                <q-input
+                  v-for="(col, i) in tableData.columns"
+                  :key="i"
+                  v-model="newRow[i]"
+                  dark
+                  filled
+                  color="white"
+                  :label="col"
+                  class="q-mb-sm"
+                />
+                
+                <q-btn 
+                  label="Agregar Fila" 
+                  @click="addRow"
+                  color="primary"
+                  class="full-width"
+                />
+              </div>
+
+              <q-btn 
+                label="Guardar en Base de Datos" 
+                @click="guardarTablaEnBD"
+                color="green"
+                class="full-width q-mt-lg"
+              />
+            </q-card-section>
+          </q-card>
+
+          <div class="col-md-9 col-sm-12">
+            <q-card class="bg-grey-8 text-white">
+              <q-card-section>
+                <h3 class="text-h5 q-mt-none">Vista Previa de la Tabla</h3>
+                
                 <div v-if="tableData.columns.length">
-                    <h2>Agregar Información</h2>
-                    <div v-for="(col, i) in tableData.columns" :key="i">
-                        <input v-model="newRow[i]" :placeholder="`Dato ${col}`" />
-                    </div>
-                    <button @click="addRow">Agregar Fila</button>
+                  <q-table
+                    flat
+                    bordered
+                    dark
+                    :rows="tableData.rows"
+                    :columns="tableColumns"
+                    row-key="index"
+                    hide-pagination
+                    :pagination="{ rowsPerPage: 0 }"
+                    class="q-mt-md"
+                  >
+                    <template v-slot:body-cell-actions="props">
+                      <q-td :props="props">
+                        <q-btn 
+                          v-if="editIndex !== props.row.index"
+                          icon="edit"
+                          color="info"
+                          dense
+                          round
+                          @click="editRow(props.row.index)"
+                          class="q-mr-xs"
+                        />
+                        <q-btn 
+                          v-else
+                          icon="save"
+                          color="positive"
+                          dense
+                          round
+                          @click="saveRow(props.row.index)"
+                          class="q-mr-xs"
+                        />
+                        <q-btn 
+                          icon="delete"
+                          color="negative"
+                          dense
+                          round
+                          @click="deleteRow(props.row.index)"
+                        />
+                      </q-td>
+                    </template>
+                  </q-table>
                 </div>
-
-                <button @click="guardarTablaEnBD">Guardar en Base de Datos</button>
-            </aside>
-
-            <main class="col-8">
-                <h3 style="color: aliceblue;">
-                    <span id="welcomeMessage"></span>
-                </h3>
-                <table v-if="tableData.columns.length">
-                    <thead>
-                        <tr>
-                            <th v-for="(col, i) in tableData.columns" :key="i">{{ col }}</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(row, rowIndex) in tableData.rows" :key="rowIndex">
-                            <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-                                <span v-if="editIndex !== rowIndex">{{ cell }}</span>
-                                <input v-else v-model="tableData.rows[rowIndex][cellIndex]" />
-                            </td>
-                            <td>
-                                <button v-if="editIndex !== rowIndex" @click="editRow(rowIndex)">Editar</button>
-                                <button v-else @click="saveRow(rowIndex)">Guardar</button>
-                                <button @click="deleteRow(rowIndex)">Eliminar</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </main>
+                
+                <div v-else class="text-center q-pa-lg">
+                  <q-icon name="table_chart" size="xl" color="grey-5" />
+                  <p class="text-grey-5 q-mt-sm">No hay datos para mostrar. Configura tu tabla primero.</p>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-    </div>
-    
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
-<script setup>
-    import { ref,reactive, onMounted } from 'vue';
-    import axios from 'axios';
-    import { useRoute } from 'vue-router'
-    import { io } from 'socket.io-client';
+<script>
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { io } from 'socket.io-client';
+import axios from 'axios';
 
-    const route = useRoute()
-    const cardId = ref(null)
-    const user = ref(null);
+export default {
+  setup() {
+    const route = useRoute();
     const columnCount = ref(0);
     const columnNames = ref([]);
     const tableData = reactive({
-        columns: [],
-        rows: []
+      columns: [],
+      rows: []
     });
     const newRow = ref([]);
     const editIndex = ref(null);
+    
     const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
-        withCredentials: true
+      withCredentials: true
+    });
+
+    const tableColumns = computed(() => {
+      return [
+        ...tableData.columns.map((col, index) => ({
+          name: col,
+          required: true,
+          label: col,
+          align: 'center',
+          field: row => row[index],
+          sortable: true
+        })),
+        {
+          name: 'actions',
+          label: 'Acciones',
+          align: 'center',
+          field: 'actions'
+        }
+      ];
     });
 
     onMounted(() => {
-    const title = route.query.name;
-    const id = route.query.id;
+      const title = route.query.name;
+      const id = route.query.id;
 
-    if (!title || !id) return;
+      if (!title || !id) return;
 
-    socket.emit("solicitar_tabla", { title, id });
+      socket.emit("solicitar_tabla", { title, id });
 
-    socket.on("tabla_recibida", (data) => {
+      socket.on("tabla_recibida", (data) => {
         Object.assign(tableData, data);
         newRow.value = Array(data.columns.length).fill('');
         columnNames.value = [...data.columns];
         columnCount.value = data.columns.length;
-    });
+      });
 
-    socket.on("tabla_error", (error) => {
+      socket.on("tabla_error", (error) => {
         console.error("Error al cargar la tabla:", error.message);
         alert("Error al cargar la tabla: " + error.message);
-    });
+      });
     });
 
     function generateColumnInputs() {
-        columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');
+      columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');
     }
-
     function createTable() {
-        tableData.columns = [...columnNames.value];
-        tableData.rows = [];
-        newRow.value = Array(columnNames.value.length).fill('');
+      tableData.columns = [...columnNames.value];
+      tableData.rows = [];
+      newRow.value = Array(columnNames.value.length).fill('');
     }
-
     function addRow() {
-        if (newRow.value.length !== tableData.columns.length) return;
-        tableData.rows.push([...newRow.value]);
-        newRow.value = Array(tableData.columns.length).fill('');
+      if (newRow.value.length !== tableData.columns.length) return;
+      tableData.rows.push([...newRow.value]);
+      newRow.value = Array(tableData.columns.length).fill('');
     }
-
     function editRow(index) {
-        editIndex.value = index;
+      editIndex.value = index;
     }
-
     function saveRow(index) {
-        editIndex.value = null;
+      editIndex.value = null;
     }
-
     function deleteRow(index) {
-        tableData.rows.splice(index, 1);
+      tableData.rows.splice(index, 1);
     }
-    const guardarTablaEnBD = async () => {
-        console.log('Guardando tabla en BD...', route.query.id );
-        if (!route.query.id ) {
-            alert('No se pudo determinar el ID de la card.');
-            return;
-        }
+    async function guardarTablaEnBD() {
+      console.log('Guardando tabla en BD...', route.query.id);
+      if (!route.query.id) {
+        alert('No se pudo determinar el ID de la card.');
+        return;
+      }
 
-        try {
-            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
-                card_id: route.query.id ,
-                columns: tableData.columns,
-                rows: tableData.rows
-            }, {
-                withCredentials: true
-            });
+      try {
+        const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
+          card_id: route.query.id,
+          columns: tableData.columns,
+          rows: tableData.rows
+        }, {
+          withCredentials: true
+        });
 
-            if (response.data.success) {
-                alert('Datos guardados exitosamente');
-            } else {
-                alert('Error al guardar los datos');
-            }
-        } catch (error) {
-            console.error('Error al guardar:', error);
-            alert('Error de conexión al guardar los datos');
+        if (response.data.success) {
+          alert('Datos guardados exitosamente');
+        } else {
+          alert('Error al guardar los datos');
         }
+      } catch (error) {
+        console.error('Error al guardar:', error);
+        alert('Error de conexión al guardar los datos');
+      }
     }
 
+    return {
+      columnCount,
+      columnNames,
+      tableData,
+      newRow,
+      editIndex,
+      tableColumns,
+      generateColumnInputs,
+      createTable,
+      addRow,
+      editRow,
+      saveRow,
+      deleteRow,
+      guardarTablaEnBD
+    };
+  }
+};
 </script>
 
-<style>
-*{padding: 0%;margin: 0%;box-sizing: border-box;}
-.main{
-    width: 100%;
-    height: 100vh;
-    background-color: rgba(31,31,31,255);
-}
-.menu{
-    height: 90vh;
-    background-color: #232523;
-}
-.titulo{
-    color: #ddd;
-    font-weight: bold;
-    width: 100%;
-    height: 10%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-#config-form{
-    width: 100%;
+<style lang="scss">
+.q-header {
+  background: linear-gradient(145deg, #2e7d32 0%, #1b5e20 100%);
 }
 
-
-.menu h2{
-    text-align: center;
-    color: #fff;
-    font-weight: bold;
-}
-.menu button{
-    width: 90%;
-    height: 30px;
-    margin-left: 10px;
-    text-align: center;
-    border-radius: 10%/95%;
-    font-weight: bold;
+.q-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
 }
 
-.input-group {
-    width: 100%;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-.input-group input {
-    margin-left: 2px;
-    width: 15%;
-    text-align: center;
-}
-.generador_input{
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: 10px;
-}
-.generador_input input{
-    width: 80%;
-    margin-left: 10px;
-}
-.rowInputs{
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: 10px;
-}
-.rowInputs input{
-    width: 80%;
-    margin-left: 10px;
+.q-table {
+  border-radius: 8px;
+  overflow: hidden;
+  
+  thead tr {
+    background: linear-gradient(145deg, #2e7d32 0%, #1b5e20 100%);
+  }
+  
+  tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
 }
 
-#Tabla-columnsa{
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    width: 100%;
-}
-table {
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    width: 100%;
-    border: 1px solid rgb(255, 255, 255);
-    text-align: center;
-}
-
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-    color: #ddd;
-}
-
-th {
-    background-color: #4CAF50;
-    color: #fff;    
-}
-
-.hidden {
-    display: none;
+.q-btn {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 </style>

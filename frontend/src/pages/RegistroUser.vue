@@ -7,19 +7,26 @@
                 </q-card-section>
 
                 <q-card-section>
-                    <q-input filled v-model="form.username" label="Nombre" color="blue-grey-1 bg-blue-grey-6" />
+                    <q-input rounded standout v-model="form.username" label="Nombre" color="blue-grey-1 bg-blue-grey-6" />
                 </q-card-section>
                 <q-card-section>
-                    <q-input filled v-model="form.password" label="Contraseña" color="blue-grey-1 bg-blue-grey-6"  />
+                    <q-input v-model="form.password" rounded standout :type="isPwd ? 'password' : 'text'" label="Contraseña" color="blue-grey-1 bg-blue-grey-6">
+                        <template v-slot:append>
+                        <q-icon
+                            :name="isPwd ? 'visibility_off' : 'visibility'"
+                            class="cursor-pointer"
+                            @click="isPwd = !isPwd"
+                        />
+                        </template>
+                    </q-input>
                 </q-card-section>
 
-                <q-card-actions>
+                <q-card-actions class="flex justify-around items-center" style="padding: 16px;">
                     <q-btn @click="registerUser" label="Enviar" color="blue-grey-10" />
+                    <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
                 </q-card-actions>
 
-                <q-card-section v-if="mensaje">
-                    <p>{{ mensaje }}</p>
-                </q-card-section>
+
             </q-card>
         </div>
     </q-page>
@@ -30,16 +37,19 @@
     import { ref } from 'vue'
     import axios from 'axios'
 
+    const isPwd = ref(true)
     const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
 
     const registerUser = async () => {
         try {
             const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/register`, form.value)
-            mensaje.value = 'Usuario registrado con éxito' 
+            mensaje.value = 'Usuario registrado con éxito'
+            window.location.href = '/login'; 
         } catch (error) {
         console.error('Error al registrar:', error.response?.data || error.message)
-        mensaje.value = 'Error al registrar usuario' 
+        mensaje.value = 'Error al registrar usuario'
+        
         }
     }
 

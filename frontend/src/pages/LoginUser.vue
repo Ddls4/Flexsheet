@@ -7,19 +7,26 @@
                 </q-card-section>
 
                 <q-card-section>
-                    <q-input filled v-model="form.username" label="Nombre" color="blue-grey-1 bg-blue-grey-6"/>
+                    <q-input rounded standout v-model="form.username" label="Nombre" color="blue-grey-1 bg-blue-grey-6"/>
                 </q-card-section>
                 <q-card-section>
-                    <q-input filled v-model="form.password" label="Contraseña" color="blue-grey-1 bg-blue-grey-6" />
+                    <q-input v-model="form.password" rounded standout :type="isPwd ? 'password' : 'text'" label="Contraseña" color="blue-grey-1 bg-blue-grey-6">
+                        <template v-slot:append>
+                        <q-icon
+                            :name="isPwd ? 'visibility_off' : 'visibility'"
+                            class="cursor-pointer"
+                            @click="isPwd = !isPwd"
+                        />
+                        </template>
+                    </q-input>
                 </q-card-section>
 
-                <q-card-actions>
+                
+
+                <q-card-actions class="flex justify-around items-center" style="padding: 16px;">
                     <q-btn @click="LoginUser" label="Enviar" color="blue-grey-10" />
+                     <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
                 </q-card-actions>
-
-                <q-card-section v-if="mensaje">
-                    <p>{{ mensaje }}</p>
-                </q-card-section>
             </q-card>
         </div>
     </q-page>
@@ -30,6 +37,7 @@
     import { ref } from 'vue'
     import axios from 'axios'
 
+     const isPwd = ref(true)
     const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
 
@@ -38,16 +46,12 @@
             const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/login`, form.value, { withCredentials: true });
             if (response.data.success) {
                 mensaje.value = 'Usuario logeado con éxito';
-                // Guardar los datos del usuario en localStorage o en el estado de la aplicación
                 localStorage.setItem('user', JSON.stringify(response.data.user));
-                // Redirigir al usuario a la página principal o dashboard
-                window.location.href = '/'; // Ajusta la ruta según tu aplicación
+                window.location.href = '/'; 
             }
         } catch (error) {
             console.error('Error al registrar:', error.response?.data || error.message);
             mensaje.value = 'Error al logear al usuario';
         }
     }
-
-
 </script>

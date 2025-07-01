@@ -13,7 +13,6 @@ const __dirname = path.dirname(__filename);
 
 const servidor = express();
 const httpServer = createServer(servidor);
-
 config();
 
 servidor.use(morgan("dev"));

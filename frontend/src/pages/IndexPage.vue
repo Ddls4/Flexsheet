@@ -8,26 +8,46 @@
               <q-label class="text-h2">Flexsheet</q-label>
           </div>
           <div>   
-              <q-label class="text-subtitle1 text-center">Silplificamos tu gestion de datos. Deve registrarse para usar la funcion crear</q-label>
+              <q-label class="text-subtitle1 text-center">Simplificamos tu gestión de datos. Debe registrarse para usar la función, crear y poder acceder a las tablas</q-label>
           </div>
         </div>
       </div>
 
-      <div class="col-6" >
+      <div class="col-6" style="background-color: #455a64;" >
         <!-- menu de botones -->
-        <div class="row q-mb-md">
-          <q-btn class="q-mr-sm" color="primary" @click="showCreateDialog = true;"> Crear</q-btn>
+        <div class="row items-center q-gutter-sm q-mb-md full-width" style="background-color: #455a64; padding: 10px; border-radius: 5px; min-height: 60px; ">
+          <q-btn color="primary" class="text-white" @click="showCreateDialog = true">
+            Crear
+          </q-btn>
 
-          <q-btn         :color="selectionMode ? 'negative' : 'secondary'" @click="toggleSelectionMode">
+          <q-btn
+            :color="selectionMode ? 'negative' : 'secondary'"
+            class="text-white"
+            @click="toggleSelectionMode"
+          >
             {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar' }}
           </q-btn>
 
-          <q-btn color="negative" @click="showConfirmDialog = true" :disable="!selectionMode || selectedCardIndex === null">Eliminar</q-btn>
-          <q-btn class="q-mr-sm" color="secondary" @click="editarCard" > Editar </q-btn>
+          <q-btn
+            color="negative"
+            class="text-white"
+            @click="showConfirmDialog = true"
+            :disable="!selectionMode || selectedCardIndex === null"
+          >
+            Eliminar
+          </q-btn>
 
+          <q-btn
+            color="secondary"
+            class="text-white"
+            @click="editarCard"
+            disable
+          >
+            Editar
+          </q-btn>
         </div>
         <!-- Card /tabla -->
-        <div class="row q-col-gutter-md"> 
+        <div class="row q-col-gutter-md" style="margin: 5px;"> 
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
             <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
             @click="cardClicked(index)">
@@ -41,7 +61,6 @@
                 <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
                 
                 </q-img>
-                <div class="text-subtitle2">Creado: {{ card.date }}</div>
               </q-card-section>
 
             </q-card>
@@ -95,19 +114,16 @@
 </template>
 
 <script setup>
- // Sistema para entrar a las tablas
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router'
   import axios from 'axios'
   import { io } from "socket.io-client";
 
   const router = useRouter()
-
   const showCreateDialog = ref(false);
   const showConfirmDialog = ref(false);
   const cards = ref([]);
   const newCard = ref({title: '',imagenURL: ''});
-
   const selectedCardIndex = ref(null);
   const selectionMode = ref(false);
   const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
@@ -115,8 +131,7 @@
   });
 
   const fetchUserCards = async () => {
-  socket.emit("solicitar_cards");
-
+    socket.emit("solicitar_cards");
     socket.on("cards_usuario", ({ cards: lista }) => {
       cards.value = lista.map(card => ({
           id: card.id,
@@ -124,32 +139,25 @@
           imagenURL: card.imagenURL
         }));
     });
-
     socket.on("error_cards", (error) => {
       console.error("Error al obtener las cards:", error);
     });
   };
   const handleSubmit = async () => {
     try {
-      // 1. Preparar los datos de la card
       const today = new Date();
       const formattedDate = today.toISOString().split('T')[0];
-      
       const cardData = {
         title: newCard.value.title,
         date: formattedDate,
         imagenURL: newCard.value.imagenURL
       };
-
-      // 2. Enviar al backend (usando axios)
       const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cards`, cardData, {
-        withCredentials: true // Importante para la sesión
+        withCredentials: true 
       });
-
-      // 3. Si es exitoso, actualizar el frontend
       if (response.data.success) {
         cards.value.push({
-          id: response.data.cardId, // ID generado por MySQL
+          id: response.data.cardId,
           title: cardData.title,
           imagenURL: cardData.imagenURL
         });
@@ -186,7 +194,6 @@
   const eliminarCard = async () => {
       if (selectedCardIndex.value !== null) {
     const card = cards.value[selectedCardIndex.value];
-
     try {
       await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cardEliminar`, {
         id: card.id // suponiendo que `card` tiene una propiedad `id`

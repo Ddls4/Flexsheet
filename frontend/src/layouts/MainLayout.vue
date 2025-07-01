@@ -10,14 +10,24 @@
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
+        <q-toolbar-title class="flex" >
+          <div class="row items-center q-gutter-sm">
+            <router-link to="/" class="flex items-center" >
+              <img
+                src="~assets/icon.svg"
+                alt="Logo"
+                style="height: 35px; width: 35px; background-color: white; border-radius: 10px; padding: 0px;"
+              />
+            </router-link>
 
-        <q-toolbar-title class="" >
-          <router-link to="/" >
-            <img src="~assets/icon.svg" alt="Logo" style="height: 30px; width: 30px;" />
-          </router-link>
-          <q-badge :color="socketConnected ? 'green' : 'red'" class="q-ml-sm">
-            {{ socketConnected ? 'Conectado' : 'Desconectado' }}
-          </q-badge>
+            <q-badge
+              :color="socketConnected ? 'green' : 'red'"
+              class="q-ml-sm"
+              style="height: 20px;"
+            >
+              {{ socketConnected ? 'Conectado' : 'Desconectado' }}
+            </q-badge>
+          </div>
         </q-toolbar-title>
 
         <div> 
@@ -25,10 +35,9 @@
           <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
         </div>
         
-        
       </q-toolbar>
     </q-header>
-
+    <!-- 
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
@@ -36,11 +45,12 @@
       class="bg-blue-grey-8 text-white "
     >
       <div>Quasar: v{{ $q.version }}</div>
-      <div>Socket ID: {{ socketId }}</div>
+      <div>{{ socketId ? `ID: ${socketId}` : 'Sin ID' }}</div>
       <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
       <div>IP: {{ ip }}</div>
      
     </q-drawer>
+    -->
 
     <q-page-container>
       <!-- Pasa el socket a todas las páginas hijas -->
@@ -69,32 +79,23 @@ const iniciarSocket=()=>{
 }
 iniciarSocket()
 
-
-
 const leftDrawerOpen = ref(false)
-
   socket.value.on('connect', () => {
     socketConnected.value = true
     socketId.value = socket.value.id
     console.log('Conectado al servidor WebSocket con ID:', socket.value.id)
   })
-
   socket.value.on('disconnect', () => {
     socketConnected.value = false
     socketId.value = null
     console.log('Desconectado del servidor WebSocket')
   })
-
   socket.value.on('connect_error', (error) => {
     console.error('Error de conexión WebSocket:', error)
   })
-
-  // Escuchar eventos personalizados del backend
   socket.value.on('mensaje_servidor', (data) => {
     console.log('Mensaje recibido del servidor:', data)
-    // Aquí puedes manejar los mensajes entrantes
   })
-
 
 // Limpiar el socket al desmontar el componente
 const cleanupSocket = () => {
@@ -106,18 +107,13 @@ const cleanupSocket = () => {
     socket.value.disconnect()
   }
 }
-
-
-
 // Limpiar al desmontar
 onBeforeUnmount(() => {
   cleanupSocket()
 })
-
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
-
 // Función para enviar mensajes (puede ser usada desde otros componentes)
 const enviarMensaje = (mensaje) => {
   if (socket.value && socketConnected.value) {
@@ -126,7 +122,6 @@ const enviarMensaje = (mensaje) => {
     console.warn('No se puede enviar mensaje: WebSocket no conectado')
   }
 }
-
 // Exportar para usar en otros componentes si es necesario
 defineExpose({
   socket,
