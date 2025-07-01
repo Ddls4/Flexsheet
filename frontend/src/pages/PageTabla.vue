@@ -62,7 +62,12 @@
 <script setup>
     import { ref,reactive, onMounted } from 'vue';
     import axios from 'axios';
+    import { useRoute } from 'vue-router'
+    import { io } from 'socket.io-client';
 
+    const route = useRoute()
+    const cardId = ref(null)
+    const user = ref(null);
     const columnCount = ref(0);
     const columnNames = ref([]);
     const tableData = reactive({
@@ -71,18 +76,31 @@
     });
     const newRow = ref([]);
     const editIndex = ref(null);
-
-
-    onMounted(async () => {
-        try {
-            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/user`, { withCredentials: true });
-            if (response.data.success) {
-                user.value = response.data.user;
-            }
-        } catch (error) {
-            console.error('Error al obtener el usuario:', error);
-        }
+    const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+        withCredentials: true
     });
+
+    onMounted(() => {
+    const title = route.query.name;
+    const id = route.query.id;
+
+    if (!title || !id) return;
+
+    socket.emit("solicitar_tabla", { title, id });
+
+    socket.on("tabla_recibida", (data) => {
+        Object.assign(tableData, data);
+        newRow.value = Array(data.columns.length).fill('');
+        columnNames.value = [...data.columns];
+        columnCount.value = data.columns.length;
+    });
+
+    socket.on("tabla_error", (error) => {
+        console.error("Error al cargar la tabla:", error.message);
+        alert("Error al cargar la tabla: " + error.message);
+    });
+    });
+
     function generateColumnInputs() {
         columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');
     }
@@ -111,24 +129,32 @@
         tableData.rows.splice(index, 1);
     }
     const guardarTablaEnBD = async () => {
-    try {
-        const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
-            card_id: 1, // Aquí deberías pasar el `card_id` real que corresponda
-            rows: tableData.rows
-        }, {
-            withCredentials: true
-        });
-
-        if (response.data.success) {
-            alert('Datos guardados exitosamente');
-        } else {
-            alert('Error al guardar los datos');
+        console.log('Guardando tabla en BD...', route.query.id );
+        if (!route.query.id ) {
+            alert('No se pudo determinar el ID de la card.');
+            return;
         }
-    } catch (error) {
-        console.error('Error al guardar:', error);
-        alert('Error de conexión al guardar los datos');
+
+        try {
+            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
+                card_id: route.query.id ,
+                columns: tableData.columns,
+                rows: tableData.rows
+            }, {
+                withCredentials: true
+            });
+
+            if (response.data.success) {
+                alert('Datos guardados exitosamente');
+            } else {
+                alert('Error al guardar los datos');
+            }
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            alert('Error de conexión al guardar los datos');
+        }
     }
-};
+
 </script>
 
 <style>

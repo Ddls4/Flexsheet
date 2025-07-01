@@ -29,7 +29,6 @@ const registrar = async (username, password) => {
         throw err;
     }
 };
-
 const login = async (username, password) => {
     console.log(password, password)
     const [rows] = await conexion.query(
@@ -47,7 +46,6 @@ const login = async (username, password) => {
 
     return user;
 };
-
 const createCard = async (userId, title, date, imagenURL) => {
     console.log(userId, title, date, imagenURL)
     const [result] = await conexion.query(
@@ -56,7 +54,6 @@ const createCard = async (userId, title, date, imagenURL) => {
     );
     return result.insertId;
 };
-
 const getCardsByUser = async (userId) => {
     const [rows] = await conexion.query(
         'SELECT * FROM cards WHERE user_id = ?',
@@ -64,77 +61,83 @@ const getCardsByUser = async (userId) => {
     );
     return rows;
 };
-const save_table = (tableData, userId,req,res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Usuario no autenticado' });
+
+const guardarTabla = async ({ card_id, columns, rows }) => {
+    if (!card_id || !Array.isArray(rows) || !Array.isArray(columns)) {
+        throw new Error('Datos incompletos');
     }
 
-    // Validación del formato del JSON
-    if (!tableData || !tableData.columns || !tableData.rows) {
-        return res.status(400).json({ message: 'Datos de la tabla no válidos' });
+    const datosJSON = JSON.stringify({ columns, rows });
+
+    const query = `
+        INSERT INTO tabla (cards_id, datos, fecha_guardado)
+        VALUES (?, ?, CURDATE())
+        ON DUPLICATE KEY UPDATE datos = VALUES(datos), fecha_guardado = CURDATE()
+    `;
+
+    await conexion.query(query, [card_id, datosJSON]);
+};
+const cargarTabla = async (title, id = null) => {
+    if (!title && !id) {
+        throw new Error('Título o ID requerido');
     }
 
-    // Primero, verifica si el usuario ya tiene una tabla guardada
-    const checkQuery = `SELECT id FROM Tabla WHERE user_id = ?`;
+    let cards_id;
 
-    conexion.query(checkQuery, [userId], (err, results) => {
-        if (err) {
-            console.error('Error al verificar la tabla existente:', err);
-            return res.status(500).json({ message: 'Error al verificar la tabla existente' });
+    if (id) {
+        cards_id = id;
+    } else {
+        const [cardResult] = await conexion.query(
+            'SELECT id FROM cards WHERE title = ?',
+            [title]
+        );
+
+        if (cardResult.length === 0) {
+            throw new Error('Card no encontrada');
         }
 
-        if (results.length > 0) {
-            // Si ya existe, actualiza la tabla
-            const updateQuery = `UPDATE Tabla SET datos = ? WHERE user_id = ?`;
+        console.log(cardResult);  // <-- Aquí sí
 
-            conexion.query(updateQuery, [JSON.stringify(tableData), userId], (err) => {
-                if (err) {
-                    console.error('Error al actualizar la tabla:', err);
-                    return res.status(500).json({ message: 'Error al actualizar la tabla' });
-                }
+        cards_id = cardResult[0].id;
+    }
 
-                res.json({ message: 'Tabla actualizada exitosamente' });
-            });
-        } else {
-            // Si no existe, inserta una nueva entrada
-            const insertQuery = `INSERT INTO Tabla (user_id, datos) VALUES (?, ?)`;
+    const [tablaResult] = await conexion.query(
+        'SELECT datos FROM tabla WHERE cards_id = ?',
+        [cards_id]
+    );
 
-            conexion.query(insertQuery, [userId, JSON.stringify(tableData)], (err, results) => {
-                if (err) {
-                    console.error('Error al guardar en la base de datos:', err);
-                    return res.status(500).json({ message: 'Error al guardar la tabla' });
-                }
+    if (tablaResult.length === 0) {
+        return { columns: [], rows: [] }; // tabla vacía
+    }
 
-                res.json({ message: 'Tabla guardada exitosamente', id: results.insertId });
-            });
-        }
-    });
+    console.log(tablaResult);
+
+    const datos = JSON.parse(tablaResult[0].datos);
+    console.log(datos);
+
+    return datos;
+};
+const eliminarCard = async (id) => {
+if (!id) {
+    throw new Error('Falta el ID de la card');
+  }
+  const [result] = await conexion.query('DELETE FROM cards WHERE id = ?', [id]);
+  if (result.affectedRows === 0) {
+    throw new Error('Card no encontrada');
+  }
+
+  return true;
 }
-const load_table =(userId, req, res) =>{
-    if (!userId) {
-        return res.status(400).json({ message: 'ID de usuario requerido' });
-    }
 
-    const query = `SELECT datos FROM Tabla WHERE user_id = ?`;
+// raro /user y /logout 
 
-    conexion.query(query, [userId], (err, results) => {
-        if (err) {
-            console.error('Error al consultar la base de datos:', err);
-            return res.status(500).json({ message: 'Error al cargar la tabla' });
-        }
-
-        if (results.length > 0) {
-            const tableData = JSON.parse(results[0].datos); // Convertir el campo JSON a un objeto
-            res.json(tableData); // Enviar la información al cliente
-        } else {
-            res.json(null); // No se encontraron datos
-        }
-    });
-}
 export {
     registrar,
     login,
     createCard,
     getCardsByUser,
+    guardarTabla,
+    cargarTabla,
+    eliminarCard,
     conexion
 };

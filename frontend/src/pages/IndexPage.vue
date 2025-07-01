@@ -119,10 +119,10 @@
 
     socket.on("cards_usuario", ({ cards: lista }) => {
       cards.value = lista.map(card => ({
-        id: card.id,
-        title: card.title,
-        imagenURL: card.imagenURL
-      }));
+          id: card.id,
+          title: card.title,
+          imagenURL: card.imagenURL
+        }));
     });
 
     socket.on("error_cards", (error) => {
@@ -176,7 +176,7 @@
       } else {
         // modo normal: redirigir a /tabla pasando la card o su nombre
         const card = cards.value[index];
-        router.push({ path: '/tabla', query: { name: card.title } });
+        router.push({ path: '/tabla', query: { name: card.title, id: card.id } });
       }
   };
   const confirmarEliminar = () => {
