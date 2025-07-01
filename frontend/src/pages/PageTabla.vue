@@ -78,30 +78,30 @@
 
 
     onMounted(async () => {
-
         const title = route.query.name
-        if (!title) return
+        const id = route.query.id
+
+        if (!title && !id) return
 
         try {
-            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/tabla/${title}`)
-            console.log('Tabla cargada:', response.data)
+            const response = await axios.get(`http://${import.meta.env.VITE_P_IP}:80/tabla`, {
+                params: { name: title, id }
+            })
 
-            const data = response.data;
+            const data = response.data
 
-            // Si recibimos un array plano (una sola fila sin columnas), lo adaptamos:
-            if (Array.isArray(data)) {
-                // Autogenerar columnas: Col1, Col2, etc.
-                const generatedColumns = data.map((_, i) => `Col${i + 1}`);
-                tableData.columns = generatedColumns;
-                tableData.rows = [data]; // Una sola fila
-            } else {
-                Object.assign(tableData, data);
-            }
+            Object.assign(tableData, data)
+
+            newRow.value = Array(tableData.columns.length).fill('')
+
+            columnNames.value = [...tableData.columns]
+
+            columnCount.value = tableData.columns.length
 
         } catch (error) {
             console.error('Error al cargar la tabla:', error)
         }
-    });
+    })
 
     function generateColumnInputs() {
         columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');

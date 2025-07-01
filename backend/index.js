@@ -116,15 +116,17 @@ servidor.post('/guardar-tabla', async (req, res) => {
         res.status(status).json({ success: false, message: error.message });
     }
 });
-servidor.get('/tabla/:title', async (req, res) => {
-    const { title } = req.params;
-    console.log(`Consultando /tabla/${title}`);
+servidor.get('/tabla', async (req, res) => {
+    const { name: title, id } = req.query;
+    
+    console.log(`Consultando /tabla con title=${title} e id=${id}`);
+
     try {
-        const datos = await cargarTabla(title);
+        const datos = await cargarTabla(title, id);
         res.json(datos);
     } catch (err) {
         console.error('Error al consultar la tabla:', err.message);
-        if (err.message === 'Título requerido') {
+        if (err.message === 'Título o ID requerido') {
             return res.status(400).json({ message: err.message });
         } else if (err.message === 'Card no encontrada') {
             return res.status(404).json({ message: err.message });
