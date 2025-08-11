@@ -58,5 +58,5 @@ CREATE TABLE tabla (
     card_id INT UNSIGNED NOT NULL,
     datos TEXT,
     fecha_guardado DATE,
-    CONSTRAINT fk_card_tabla FOREIGN KEY (card_id) REFERENCES cards(id)
+    CONSTRAINT fk_card_tabla FOREIGN KEY (cards_id) REFERENCES cards(id)
 ) ENGINE=InnoDB;

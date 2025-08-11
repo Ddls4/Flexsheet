@@ -73,116 +73,26 @@ FLUSH PRIVILEGES;
 
 ---------------------------------------------------------------------------------------
                                           MySQL
-CREATE TABLE IF NOT EXISTS `mydb`.`Permisos` (
-  `id` INT NOT NULL,
-  `R` VARCHAR(45),
-  `W` VARCHAR(45),
-  `Json` VARCHAR(45),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `mydb`.`Tipo_usuario` (
-  `id` INT NOT NULL,
-  `Nombre` VARCHAR(45),
-  `Administrador` VARCHAR(45),
-  `Usuario_sin_privilegio` VARCHAR(45),
-  `Tipo_usuario` VARCHAR(45),
-  `Permisos_id` INT NOT NULL,
-  PRIMARY KEY (`id`, `Permisos_id`),
-  INDEX `fk_Tipo_usuario_Permisos_idx` (`Permisos_id`),
-  CONSTRAINT `fk_Tipo_usuario_Permisos`
-    FOREIGN KEY (`Permisos_id`)
-    REFERENCES `mydb`.`Permisos` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `mydb`.`Mesa_trabajo` (
-  `id` INT NOT NULL,
-  `Usuario` VARCHAR(45),
-  `Nombre` VARCHAR(45),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios` (
-  `id` INT NOT NULL,
-  `Nombre` VARCHAR(45),
-  `Correo` VARCHAR(45),
-  `Contraseña` VARCHAR(45),
-  `Tipo_usuario` VARCHAR(45),
-  `Tipo_usuario_id` INT NOT NULL,
-  `Mesa_trabajo_id` INT NOT NULL,
-  PRIMARY KEY (`id`, `Tipo_usuario_id`),
-  UNIQUE INDEX `Correo_UNIQUE` (`Correo`),
-  INDEX `fk_Usuarios_Tipo_usuario_idx` (`Tipo_usuario_id`),
-  INDEX `fk_Usuarios_Mesa_trabajo_idx` (`Mesa_trabajo_id`),
-  CONSTRAINT `fk_Usuarios_Tipo_usuario`
-    FOREIGN KEY (`Tipo_usuario_id`)
-    REFERENCES `mydb`.`Tipo_usuario` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Usuarios_Mesa_trabajo`
-    FOREIGN KEY (`Mesa_trabajo_id`)
-    REFERENCES `mydb`.`Mesa_trabajo` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `mydb`.`Inf_mesa_trabajo` (
-  `id` INT NOT NULL,
-  `Boton_ID` VARCHAR(45),
-  `Json` JSON,
-  `Mesa_trabajo_id` INT NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `fk_Inf_mesa_trabajo_Mesa_trabajo_idx` (`Mesa_trabajo_id`),
-  CONSTRAINT `fk_Inf_mesa_trabajo_Mesa_trabajo`
-    FOREIGN KEY (`Mesa_trabajo_id`)
-    REFERENCES `mydb`.`Mesa_trabajo` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB;
----------------------------------------------------------------------------------------
-
-
-CREATE TABLE Mesa_trabajo (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  Nombre VARCHAR(45) NOT NULL,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE Usuarios (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  Nombre VARCHAR(45) NOT NULL,
-  Contraseña VARCHAR(255) NOT NULL,
-  Mesa_trabajo_id INT UNSIGNED NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_Usuarios_Mesa_trabajo FOREIGN KEY (Mesa_trabajo_id) REFERENCES Mesa_trabajo(id)
-);
-
-CREATE TABLE Inf_mesa_trabajo (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  Boton_ID VARCHAR(45) NOT NULL,
-  Json JSON NULL,
-  Mesa_trabajo_id INT UNSIGNED NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_Inf_mesa_trabajo_Mesa_trabajo FOREIGN KEY (Mesa_trabajo_id) REFERENCES Mesa_trabajo(id)
-);
------------------------------------------------------
-Vercion 13/6 Session
-
 CREATE TABLE usuarios (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100)
-) ENGINE=InnoDB;
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) UNIQUE,
+  contraseña VARCHAR(255)
+);
 
 CREATE TABLE cards (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    CONSTRAINT fk_Usuarios_card FOREIGN KEY (user_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  title VARCHAR(255),
+  date DATE,
+  imagenURL TEXT,
+  FOREIGN KEY (user_id) REFERENCES usuarios(id)
+);
 
-ALTER TABLE cards 
-ADD COLUMN image_url VARCHAR(255),
-ADD COLUMN date DATE;
+CREATE TABLE tabla (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  cards_id INT UNIQUE,
+  datos JSON,
+  fecha_guardado DATE,
+  FOREIGN KEY (cards_id) REFERENCES cards(id)
+);
+---------------------------------------------------------------------------------------

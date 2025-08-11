@@ -13,17 +13,15 @@ const __dirname = path.dirname(__filename);
 
 const servidor = express();
 const httpServer = createServer(servidor);
-
 config();
 
-// Middlewares | Configuración del servidor
 servidor.use(morgan("dev"));
 servidor.use(express.json());
 servidor.use(express.urlencoded({ extended: true }));
 servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 servidor.use((req, res, next) => {
-    req.setTimeout(30000);  // 30 segundos para recibir la petición
-    res.setTimeout(30000);  // 30 segundos para enviar la respuesta
+    req.setTimeout(30000);
+    res.setTimeout(30000); 
     next();
 });
 
@@ -32,39 +30,37 @@ servidor.use(cors({
   credentials: true
 }));
 
-servidor.use(session({
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
-}));
+const sessionMiddleware = session({
+  secret: "secret-key",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, maxAge: 86400000, sameSite: 'lax' } 
+});
+ servidor.use(sessionMiddleware);
 
-// Configurar Socket.IO en el servidor HTTP
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", 
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,  // *
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   },
 });
-
-// Manejar conexiones WebSocket
-io.on("connection", (socket) => {
-  console.log(`Nuevo cliente conectado: ${socket.id}`);
-  // Manejar desconexión
-  socket.on("disconnect", () => {
-    console.log(`Cliente desconectado: ${socket.id}`);
-  });
+ io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
 });
-
+io.use((socket, next) => {
+  // Guardar referencia de la sesión en el socket
+  socket.session = socket.request.session;
+  next();
+});
 
 // Iniciar servidor
 httpServer.listen(process.env.PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://${process.env.P_IP}:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`);
+  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`); // login
 })
-
-
 
 export{
     servidor,
