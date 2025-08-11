@@ -34,24 +34,37 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue'
-    import axios from 'axios'
+import { ref } from 'vue'
+import axios from 'axios'
+import { io } from 'socket.io-client'
 
-     const isPwd = ref(true)
-    const form = ref({ username: '', password: ''  })
-    const mensaje = ref('')
+const isPwd = ref(true)
+const form = ref({ username: '', password: '' })
+const mensaje = ref('')
 
-    const LoginUser = async () => {
-        try {
-            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/login`, form.value, { withCredentials: true });
-            if (response.data.success) {
-                mensaje.value = 'Usuario logeado con éxito';
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                window.location.href = '/'; 
-            }
-        } catch (error) {
-            console.error('Error al registrar:', error.response?.data || error.message);
-            mensaje.value = 'Error al logear al usuario';
-        }
+// Inicializa socket pero no conectes todavía
+const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+  withCredentials: true,
+  autoConnect: false // Controlamos manualmente la conexión
+})
+
+const LoginUser = () => {
+  axios.post(`http://${import.meta.env.VITE_P_IP}:80/login`, form.value, {
+    withCredentials: true
+  }).then(response => {
+    if (response.data.success) {
+      // Guardar usuario
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Ahora conectamos el socket después del login exitoso
+      socket.connect();
+      
+      // Redirigir
+      window.location.href = '/';
     }
+  }).catch(error => {
+    mensaje.value = error.response?.data?.message || 'Error al logear';
+    console.error("Error en login:", error);
+  });
+}
 </script>

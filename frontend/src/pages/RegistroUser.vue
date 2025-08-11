@@ -22,7 +22,7 @@
                 </q-card-section>
 
                 <q-card-actions class="flex justify-around items-center" style="padding: 16px;">
-                    <q-btn @click="registerUser" label="Enviar" color="blue-grey-10" />
+                    <q-btn @click="RegistrarUsuario" label="Enviar" color="blue-grey-10" />
                     <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
                 </q-card-actions>
 
@@ -35,22 +35,24 @@
 
 <script setup>
     import { ref } from 'vue'
-    import axios from 'axios'
+    import { io } from 'socket.io-client'
 
+    const socket = io(`http://${import.meta.env.VITE_P_IP}:80`)
     const isPwd = ref(true)
     const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
 
-    const registerUser = async () => {
-        try {
-            const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/register`, form.value)
-            mensaje.value = 'Usuario registrado con éxito'
-            window.location.href = '/login'; 
-        } catch (error) {
-        console.error('Error al registrar:', error.response?.data || error.message)
-        mensaje.value = 'Error al registrar usuario'
-        
-        }
+    const RegistrarUsuario = () => {
+        socket.emit('registrar', form.value, (response) => {
+            if (response.success) {
+                mensaje.value = 'Usuario registrado con éxito'
+                window.location.href = '/Login'; 
+            } else {
+                mensaje.value = response.message || 'Error al registrar usuario'
+            }
+        })
     }
+
+
 
 </script>

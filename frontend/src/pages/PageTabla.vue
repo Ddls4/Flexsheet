@@ -142,7 +142,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { io } from 'socket.io-client';
 import axios from 'axios';
@@ -150,19 +150,23 @@ import axios from 'axios';
 export default {
   setup() {
     const route = useRoute();
-    const columnCount = ref(0);
-    const columnNames = ref([]);
     const tableData = reactive({
       columns: [],
       rows: []
     });
+    const isLoading = ref(true);
+    const error = ref(null);
+    const columnCount = ref(0); // Añadido esto
+    const columnNames = ref([]); // Asegurarse que está definido
     const newRow = ref([]);
     const editIndex = ref(null);
     
     const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
-      withCredentials: true
+      withCredentials: true,
+      reconnection: true
     });
 
+    // Columnas computadas para la tabla
     const tableColumns = computed(() => {
       return [
         ...tableData.columns.map((col, index) => ({
@@ -182,75 +186,114 @@ export default {
       ];
     });
 
-    onMounted(() => {
+    const fetchTableData = () => {
       const title = route.query.name;
       const id = route.query.id;
 
-      if (!title || !id) return;
+      if (!title || !id) {
+        error.value = "Faltan parámetros en la URL";
+        isLoading.value = false;
+        return;
+      }
 
-      socket.emit("solicitar_tabla", { title, id });
-
-      socket.on("tabla_recibida", (data) => {
-        Object.assign(tableData, data);
-        newRow.value = Array(data.columns.length).fill('');
-        columnNames.value = [...data.columns];
-        columnCount.value = data.columns.length;
+      isLoading.value = true;
+      error.value = null;
+      
+      new Promise((resolve, reject) => {
+        socket.emit("solicitar_tabla", { title, id }, (response) => {
+          if (response?.success) {
+            resolve(response);
+          } else {
+            reject(response?.message || "Error desconocido");
+          }
+        });
+      })
+      .then(response => {
+        Object.assign(tableData, response);
+        columnCount.value = response.columns.length; // Actualizar columnCount
+        columnNames.value = [...response.columns]; // Actualizar columnNames
+        isLoading.value = false;
+      })
+      .catch(err => {
+        error.value = err;
+        isLoading.value = false;
+        console.error("Error al cargar tabla:", err);
       });
-
-      socket.on("tabla_error", (error) => {
-        console.error("Error al cargar la tabla:", error.message);
-        alert("Error al cargar la tabla: " + error.message);
-      });
-    });
+    };
 
     function generateColumnInputs() {
       columnNames.value = Array.from({ length: columnCount.value }, (_, i) => columnNames.value[i] || '');
     }
+
     function createTable() {
       tableData.columns = [...columnNames.value];
       tableData.rows = [];
       newRow.value = Array(columnNames.value.length).fill('');
     }
+
     function addRow() {
       if (newRow.value.length !== tableData.columns.length) return;
       tableData.rows.push([...newRow.value]);
       newRow.value = Array(tableData.columns.length).fill('');
     }
+
     function editRow(index) {
       editIndex.value = index;
     }
+
     function saveRow(index) {
       editIndex.value = null;
     }
+
     function deleteRow(index) {
       tableData.rows.splice(index, 1);
     }
-    async function guardarTablaEnBD() {
-      console.log('Guardando tabla en BD...', route.query.id);
-      if (!route.query.id) {
-        alert('No se pudo determinar el ID de la card.');
-        return;
-      }
 
-      try {
-        const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/guardar-tabla`, {
-          card_id: route.query.id,
-          columns: tableData.columns,
-          rows: tableData.rows
-        }, {
-          withCredentials: true
-        });
+async function guardarTablaEnBD() {
+  console.log('Guardando tabla en BD...', route.query.id);
+  if (!route.query.id) {
+    alert('No se pudo determinar el ID de la card.');
+    return;
+  }
 
-        if (response.data.success) {
-          alert('Datos guardados exitosamente');
+  try {
+    // Usar Socket.IO en lugar de Axios
+    const response = await new Promise((resolve, reject) => {
+      socket.emit("guardar_tabla", {
+        card_id: route.query.id,
+        columns: tableData.columns,
+        rows: tableData.rows
+      }, (response) => {
+        if (response.success) {
+          resolve(response);
         } else {
-          alert('Error al guardar los datos');
+          reject(response.message);
         }
-      } catch (error) {
-        console.error('Error al guardar:', error);
-        alert('Error de conexión al guardar los datos');
+      });
+    });
+
+    alert('Datos guardados exitosamente');
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    alert(`Error al guardar: ${error}`);
+  }
+}
+
+    onMounted(() => {
+      fetchTableData();
+      
+      socket.on("connect_error", (err) => {
+        error.value = "Error de conexión con el servidor";
+        console.error("Error de conexión:", err);
+      });
+    });
+
+    onUnmounted(() => {
+      socket.off("connect_error");
+      if (socket.connected) {
+        socket.disconnect();
       }
-    }
+    });
 
     return {
       columnCount,
@@ -259,6 +302,8 @@ export default {
       newRow,
       editIndex,
       tableColumns,
+      isLoading,
+      error,
       generateColumnInputs,
       createTable,
       addRow,

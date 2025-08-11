@@ -127,20 +127,36 @@
   const selectedCardIndex = ref(null);
   const selectionMode = ref(false);
   const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
-    withCredentials: true
+    withCredentials: true,
+    autoConnect: false
   });
 
+
   const fetchUserCards = async () => {
-    socket.emit("solicitar_cards");
-    socket.on("cards_usuario", ({ cards: lista }) => {
-      cards.value = lista.map(card => ({
-          id: card.id,
-          title: card.title,
-          imagenURL: card.imagenURL
-        }));
-    });
-    socket.on("error_cards", (error) => {
-      console.error("Error al obtener las cards:", error);
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return router.push('/login');
+
+    // Usar Promise para manejar la respuesta
+    new Promise((resolve, reject) => {
+      socket.emit("solicitar_cards", (response) => {
+        if (response.error) {
+          console.error("Error:", response.error);
+          if (response.error === "No autorizado") {
+            localStorage.removeItem('user');
+            router.push('/login');
+          }
+          reject(response.error);
+        } else {
+          cards.value = response.cards.map(card => ({
+            id: card.id,
+            title: card.title,
+            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'
+          }));
+          resolve(response.cards);
+        }
+      });
+    }).catch(error => {
+      console.error("Error al obtener cards:", error);
     });
   };
   const handleSubmit = async () => {
@@ -208,7 +224,13 @@
   };
     
   onMounted(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      socket.connect();
       fetchUserCards();
+    } else {
+      router.push('/login');
+    }
   });
 </script>
 

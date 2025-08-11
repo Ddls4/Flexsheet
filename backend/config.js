@@ -34,7 +34,7 @@ const sessionMiddleware = session({
   secret: "secret-key",
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } 
+  cookie: { secure: false, maxAge: 86400000, sameSite: 'lax' } 
 });
  servidor.use(sessionMiddleware);
 
@@ -42,12 +42,18 @@ const sessionMiddleware = session({
 const io = new Server(httpServer, {
   cors: {
     origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,  // *
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   },
 });
  io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
+});
+io.use((socket, next) => {
+  // Guardar referencia de la sesión en el socket
+  socket.session = socket.request.session;
+  next();
 });
 
 // Iniciar servidor

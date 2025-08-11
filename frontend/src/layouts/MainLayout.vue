@@ -37,7 +37,7 @@
         
       </q-toolbar>
     </q-header>
-    <!-- 
+    
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
@@ -50,7 +50,7 @@
       <div>IP: {{ ip }}</div>
      
     </q-drawer>
-    -->
+    
 
     <q-page-container>
       <!-- Pasa el socket a todas las páginas hijas -->
