@@ -1,0 +1,44 @@
+formatos : app sofware / infraestrucutra de red(Monitorizar la red) / nececidad de una empreza 
+
+modalidad: 
+miembros 3 a 5
+realizta y alcanzable
+
+presentar nececidad: 
+justificacion tencnica
+pruebas y resultados
+defensa oral
+
+---------------------- Entregables ------------------------
+* ING soft: coso diagramas y crongs y coso
+
+* Progamacion: 
+Frontend: logica de presentar y ver el estado (socket)
+Backend: node js sin apires ser SPA / SSR 
+BD: sql o no sql
+    Tablita y coso
+autenticaion jwt
+encriptacion
+CAPCHA // google
+docer
+docer
+
+* Redes poxy:
+modo contenedor (usar docker)
+
+* Testing:
+pruebas unitarias y integracion 
+crud
+llamadas 
+contraseñas malas fallen
+token malos fallen
+
+* Conectividad
+diagrama fisico 
+sub redes 
+identificacion de redes 
+..............
+
+14/8 nosotros web
+14/8 Evaluar la propuesta
+

@@ -1,5 +1,5 @@
 import { servidor,io  } from "./config.js";
-import { registrar, login, createCard, getCardsByUser, guardarTabla, cargarTabla, eliminarCard, conexion } from "./BD.js";
+import { registrar, login, createCard, getCardsByUser, guardarTabla, cargarTabla, eliminarCard, conexion } from "./Base_de_datos/mySQL.js";
 
 servidor.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
