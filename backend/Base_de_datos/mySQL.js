@@ -2,7 +2,7 @@ import mysql from "mysql2/promise";
 import {} from "dotenv";
 import bcrypt from "bcrypt";
 
-const conexion = mysql.createPool({
+/*const conexion = mysql.createPool({
   host: process.env.S_IP,
   user: process.env.S_USER,
   database: process.env.S_DB,
@@ -11,6 +11,7 @@ const conexion = mysql.createPool({
   connectionLimit: 10,
   connectTimeout: 60000
 });
+*/
 
 const registrar = async (username, password) => {
     const hashedPassword = await bcrypt.hash(password, 10);

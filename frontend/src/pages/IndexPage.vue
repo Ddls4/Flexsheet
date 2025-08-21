@@ -159,30 +159,31 @@
       console.error("Error al obtener cards:", error);
     });
   };
-  const handleSubmit = async () => {
-    try {
-      const today = new Date();
-      const formattedDate = today.toISOString().split('T')[0];
-      const cardData = {
-        title: newCard.value.title,
-        date: formattedDate,
-        imagenURL: newCard.value.imagenURL
-      };
-      const response = await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cards`, cardData, {
-        withCredentials: true 
-      });
-      if (response.data.success) {
+  const handleSubmit = () => {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+
+    const cardData = {
+      title: newCard.value.title,
+      date: formattedDate,
+      imagenURL: newCard.value.imagenURL
+    };
+
+    // Emitimos el evento al servidor
+    socket.emit("create_card", cardData, (response) => {
+      if (response.success) {
+        // Si fue exitoso, agregamos la card localmente
         cards.value.push({
-          id: response.data.cardId,
+          id: response.cardId,
           title: cardData.title,
           imagenURL: cardData.imagenURL
         });
         CerrarDialogCreate();
+      } else {
+        console.error('Error al guardar la card:', response.message);
+        // Aquí puedes mostrar un mensaje al usuario si quieres
       }
-    } catch (error) {
-      console.error('Error al guardar la card:', error.response?.data || error.message);
-      // Puedes mostrar un mensaje de error al usuario
-    }
+    });
   };
 
   const toggleSelectionMode = () => {
