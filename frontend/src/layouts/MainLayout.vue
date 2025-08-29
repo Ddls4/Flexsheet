@@ -28,7 +28,13 @@
               {{ socketConnected ? 'Conectado' : 'Desconectado' }}
             </q-badge>
           </div>
+          <div style="background-color: aqua;">
+              <router-link to="/" class="flex items-center" >
+                <label> papu</label>
+              </router-link>
+          </div>
         </q-toolbar-title>
+
 
         <div> 
           <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" />
@@ -42,12 +48,34 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
-      class="bg-blue-grey-8 text-white "
+      class="flex bg-blue-grey-8 text-white"
     >
-      <div>Quasar: v{{ $q.version }}</div>
-      <div>{{ socketId ? `ID: ${socketId}` : 'Sin ID' }}</div>
-      <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
-      <div>IP: {{ ip }}</div>
+        <div class="column items-start full-width" >
+            <label class="text-weight-bolder text-h2" style="margin: 30px;"> AltaShop </label>
+            <div class="col-9 full-width flex">
+              <div class="column justify-around full-width">
+                <label class="col"> Tus compras </label>
+                <label class="col"> Registrar comercio</label>
+                <label class="col"> Confirmación</label>
+                <label class="col"> Soporte</label>
+              </div>
+            </div>
+            <div class="col-2">
+
+              <div class="col"> 
+                <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" />
+                <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
+              </div>
+
+              <div>Quasar: v{{ $q.version }}</div>
+              <div>{{ socketId ? `ID: ${socketId}` : 'Sin ID' }}</div>
+              <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
+              <div>IP: {{ ip }}</div>
+          </div>
+
+
+      </div>
+
      
     </q-drawer>
     

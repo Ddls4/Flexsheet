@@ -134,7 +134,7 @@
 
   const fetchUserCards = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) return router.push('/login');
+    
 
     // Usar Promise para manejar la respuesta
     new Promise((resolve, reject) => {
