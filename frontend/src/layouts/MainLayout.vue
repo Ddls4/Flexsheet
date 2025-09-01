@@ -28,9 +28,9 @@
               {{ socketConnected ? 'Conectado' : 'Desconectado' }}
             </q-badge>
           </div>
-          <div style="background-color: aqua;">
-              <router-link to="/" class="flex items-center" >
-                <label> papu</label>
+          <div class="text-weight-bolder text-h5 q-ml-sm " >
+              <router-link to="/Menu" class="flex items-center text-white" >
+                <label> Productos</label>
               </router-link>
           </div>
         </q-toolbar-title>
@@ -48,35 +48,35 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
-      class="flex bg-blue-grey-8 text-white"
+      class="bg-blue-grey-8 text-white"
     >
-        <div class="column items-start full-width" >
-            <label class="text-weight-bolder text-h2" style="margin: 30px;"> AltaShop </label>
-            <div class="col-9 full-width flex">
-              <div class="column justify-around full-width">
-                <label class="col"> Tus compras </label>
-                <label class="col"> Registrar comercio</label>
-                <label class="col"> Confirmación</label>
-                <label class="col"> Soporte</label>
-              </div>
+      <div class="column full-height full-width q-pa-md " >
+
+        <div class="q-mb-md">
+            <label class="text-weight-bolder text-h2">AltaShop</label>
+        </div>
+        
+        <div class="column q-gutter-sm q-mb-lg">
+            <label class="text-subtitle1">Tus compras</label>
+            <label class="text-subtitle1">Registrar comercio</label>
+            <label class="text-subtitle1">Confirmación</label>
+            <label class="text-subtitle1">Soporte</label>
+        </div>
+        <q-space />
+         <div class="column q-gutter-md ">
+            <div class="row q-gutter-sm">
+              <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" class="full-width q-mb-sm"/>
+              <q-btn label="Login" color="blue-grey-10" :to="`/Login`" class="full-width"/>
             </div>
-            <div class="col-2">
-
-              <div class="col"> 
-                <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" />
-                <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
-              </div>
-
+            <div class="q-mt-md text-caption">
               <div>Quasar: v{{ $q.version }}</div>
               <div>{{ socketId ? `ID: ${socketId}` : 'Sin ID' }}</div>
               <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
               <div>IP: {{ ip }}</div>
-          </div>
+            </div>
+        </div>
 
-
-      </div>
-
-     
+      </div> 
     </q-drawer>
     
 

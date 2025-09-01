@@ -2,7 +2,7 @@
   <q-page class=" flex  " >
     <div class="column q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
 
-      <div class="col-6" style="background-color: red ;">
+      <div class="col-6 bg-grey-7">
         <div class="text-center q-mb-md" style="color: white;">
           <div style="padding: 10vh;">
               <q-label class="text-h2">AltaShop</q-label>
@@ -14,10 +14,11 @@
             </div>
         </div>
       </div>
-      <div class="col-6" style="background-color: green ;">
+      <div class="col-6 bg-grey-8" style="background-color: green ;">
             <div class="text-center q-mb-md" style="color: white;">   
                 <q-label class="text-subtitle1 text-center">Para empezar a usar la aplicación aprete en productos
-                Puedes ir a opciones para modificar a tu gusto la web.
+                Puedes ir a opciones para modificar a tu gusto la web. <br>
+                Al apretar en productos podras ver los productos que tenemos para ofrecerte y agregar al carrito
                 </q-label>
                 
             </div>

@@ -2,8 +2,11 @@
     <q-page class="flex flex-center bg-blue-grey-10">
         <div class="q-pa-md" style="max-width: 400px; width: 100%;">
             <q-card class="bg-blue-grey-8 text-white">
+
                 <q-card-section>
-                    <div class="text-h6">Registro de Usuario</div>
+                    <div class="q-mb-md text-center" style="padding: 10px;">
+                        <label class="text-weight-bolder text-h2">AltaShop</label>
+                    </div> 
                 </q-card-section>
 
                 <q-card-section>
@@ -22,7 +25,7 @@
                 </q-card-section>
 
                 <q-card-actions class="flex justify-around items-center" style="padding: 16px;">
-                    <q-btn @click="RegistrarUsuario" label="Enviar" color="blue-grey-10" />
+                    <q-btn @click="RegistrarUsuario" label="Registrarse" rounded  color="blue-grey-10" style="width: 200px;" />
                     <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
                 </q-card-actions>
 

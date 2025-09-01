@@ -3,7 +3,7 @@
     <!--  -->
     <div class="row q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
         <div class="col-3 bg-blue-grey-9">
-            <div class="row items-center q-gutter-sm q-mb-md full-width" style="background-color: red; padding: 10px; border-radius: 5px; min-height: 60px; ">
+            <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-grey-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
                 <label>filtro</label>
             </div>
         </div>
@@ -108,7 +108,125 @@
 </template>
 
 <script setup>
+  import { ref, onMounted } from 'vue';
+  import { useRouter } from 'vue-router'
+  import axios from 'axios'
+  import { io } from "socket.io-client";
 
+  const router = useRouter()
+  const showCreateDialog = ref(false);
+  const showConfirmDialog = ref(false);
+  const cards = ref([]);
+  const newCard = ref({title: '',imagenURL: ''});
+  const selectedCardIndex = ref(null);
+  const selectionMode = ref(false);
+  const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+    withCredentials: true,
+    autoConnect: false
+  });
+
+
+  const fetchUserCards = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+
+    // Usar Promise para manejar la respuesta
+    new Promise((resolve, reject) => {
+      socket.emit("solicitar_cards", (response) => {
+        if (response.error) {
+          console.error("Error:", response.error);
+          if (response.error === "No autorizado") {
+            localStorage.removeItem('user');
+            router.push('/login');
+          }
+          reject(response.error);
+        } else {
+          cards.value = response.cards.map(card => ({
+            id: card.id,
+            title: card.title,
+            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'
+          }));
+          resolve(response.cards);
+        }
+      });
+    }).catch(error => {
+      console.error("Error al obtener cards:", error);
+    });
+  };
+  const handleSubmit = () => {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+
+    const cardData = {
+      title: newCard.value.title,
+      date: formattedDate,
+      imagenURL: newCard.value.imagenURL
+    };
+
+    // Emitimos el evento al servidor
+    socket.emit("create_card", cardData, (response) => {
+      if (response.success) {
+        // Si fue exitoso, agregamos la card localmente
+        cards.value.push({
+          id: response.cardId,
+          title: cardData.title,
+          imagenURL: cardData.imagenURL
+        });
+        CerrarDialogCreate();
+      } else {
+        console.error('Error al guardar la card:', response.message);
+        // Aquí puedes mostrar un mensaje al usuario si quieres
+      }
+    });
+  };
+
+  const toggleSelectionMode = () => {
+      selectionMode.value = !selectionMode.value;
+      selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
+  };
+  const cardClicked = (index) => {
+      if (selectionMode.value) {
+        // modo selección: seleccionar/deseleccionar card
+        if (selectedCardIndex.value === index) {
+          selectedCardIndex.value = null;
+        } else {
+          selectedCardIndex.value = index;
+        }
+      } else {
+        // modo normal: redirigir a /tabla pasando la card o su nombre
+        const card = cards.value[index];
+        router.push({ path: '/tabla', query: { name: card.title, id: card.id } });
+      }
+  };
+  const confirmarEliminar = () => {
+      eliminarCard();
+      showConfirmDialog.value = false;
+  };
+  const eliminarCard = async () => {
+      if (selectedCardIndex.value !== null) {
+    const card = cards.value[selectedCardIndex.value];
+    try {
+      await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cardEliminar`, {
+        id: card.id // suponiendo que `card` tiene una propiedad `id`
+      });
+
+      cards.value.splice(selectedCardIndex.value, 1);
+      selectedCardIndex.value = null;
+    } catch (error) {
+      console.error('Error al eliminar la card:', error);
+    }
+  }
+  };
+    
+  onMounted(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      socket.connect();
+      fetchUserCards();
+    } else {
+      router.push('/login');
+    }
+  });
 </script>
 
 <style>

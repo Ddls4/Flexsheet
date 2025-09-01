@@ -3,7 +3,7 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      { path: '', component: () => import('pages/IndexInfo.vue') }
     ]
   },
   {
@@ -35,7 +35,7 @@ const routes = [
     ]
   },
   {
-    path: '/2',
+    path: '/Menu',
   component: () => import('layouts/MainLayout.vue'),
   children: [
     { path: '', component: () => import('pages/IndexMenu.vue') }
