@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "set NODE_OPTIONS=--experimental-vm-modules&& jest  ./testing/text_suma.test.js",
+    "test": "set NODE_OPTIONS=--experimental-vm-modules&& jest ./testing/text.test.js",
     "dev": "concurrently \"cd backend && node server.js\" \"cd frontend && quasar dev\"",
     "build": "cd frontend && quasar build",
     "start": "node backend/server.js"
@@ -24,5 +24,8 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.14.1",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^30.1.3"
   }
 }
