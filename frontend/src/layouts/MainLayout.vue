@@ -37,7 +37,7 @@
 
 
         <div> 
-          <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" />
+          <q-btn label="Registro" color="blue-grey-10" :to="`/Registro`" />
           <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
         </div>
         
@@ -57,10 +57,19 @@
         </div>
         
         <div class="column q-gutter-sm q-mb-lg">
-            <label class="text-subtitle1">Tus compras</label>
+            <label class="text-subtitle1">Historial de compras</label>
             <label class="text-subtitle1">Registrar comercio</label>
-            <label class="text-subtitle1">Confirmación</label>
+            <label class="text-subtitle1">Configuracion</label>
             <label class="text-subtitle1">Soporte</label>
+
+            <router-link to="/Tabla" class="flex items-center text-white" >
+              <label class="text-subtitle1">Tabla</label>
+            </router-link>
+            <router-link to="/MenuEmpresa" class="flex items-center text-white" >
+              <label class="text-subtitle1">Menu de empresa (tus articulos)</label>
+            </router-link>
+            
+            
         </div>
         <q-space />
          <div class="column q-gutter-md ">

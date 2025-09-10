@@ -7,31 +7,31 @@ const routes = [
     ]
   },
   {
-  path: '/tabla',
+  path: '/Tabla',
   component: () => import('layouts/MainLayout.vue'),
   children: [
     { path: '', component: () => import('pages/PageTabla.vue') }
     ]
   },
   {
-  path: '/registro',
+  path: '/Registro',
   component: () => import('layouts/MainLayout.vue'),
   children: [
     { path: '', component: () => import('pages/RegistroUser.vue') }
     ]
   },
   {
-  path: '/login',
+  path: '/Login',
   component: () => import('layouts/MainLayout.vue'),
   children: [
     { path: '', component: () => import('pages/LoginUser.vue') }
     ]
   },
   {
-    path: '/1',
+    path: '/MenuEmpresa',
   component: () => import('layouts/MainLayout.vue'),
   children: [
-    { path: '', component: () => import('pages/IndexInfo.vue') }
+    { path: '', component: () => import('pages/MenuEmpresa.vue') }
     ]
   },
   {

@@ -1,0 +1,264 @@
+<template>
+  <q-page class=" flex  " >
+    <!--  -->
+    <div class="row q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
+        <div class="col-3 bg-blue-grey-9">
+            <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-grey-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
+                <label>filtro</label>
+            </div>
+            <div class="row items-center q-gutter-sm q-mb-md full-width " style="background-color: #455a63; padding: 10px; border-radius: 5px; min-height: 60px; ">
+            <q-btn color="primary" class="text-white" @click="showCreateDialog = true">
+                Crear
+            </q-btn>
+
+            <q-btn
+                :color="selectionMode ? 'negative' : 'secondary'"
+                class="text-white"
+                @click="toggleSelectionMode"
+            >
+                {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar' }}
+            </q-btn>
+
+            <q-btn
+                color="negative"
+                class="text-white"
+                @click="showConfirmDialog = true"
+                :disable="!selectionMode || selectedCardIndex === null"
+            >
+                Eliminar
+            </q-btn>
+
+            <q-btn
+                color="secondary"
+                class="text-white"
+                @click="editarCard"
+                disable
+            >
+                Editar
+            </q-btn>
+            
+            </div>
+
+        </div>
+      <div class="col-9" style="background-color: #455a64;" >
+
+        <!-- Card /tabla -->
+        <div class="row q-col-gutter-md" style="margin: 5px;"> 
+
+          <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
+            <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
+            @click="cardClicked(index)">
+              
+              <q-card-section style="padding: 0;">
+                <q-img 
+                  v-if="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
+                  :src="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
+                  style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
+                >
+                <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
+                
+                </q-img>
+              </q-card-section>
+
+            </q-card>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <q-dialog v-model="showCreateDialog" persistent> 
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6"> test Crear Nueva Card</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.title" type="text"  placeholder="nombre" />
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat label="Add address" type="submit" @click="handleSubmit" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+ 
+     <!--Diálog para crear nueva Card -->
+    <q-dialog v-model="showCreateDialog" persistent> 
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Crear Nueva Card</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.title" type="text"  placeholder="nombre" />
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat label="Add address" type="submit" @click="handleSubmit" v-close-popup />
+        </q-card-actions>
+      </q-card>
+
+    </q-dialog>
+     <!-- Dialog Confirmación Eliminar -->
+    <q-dialog v-model="showConfirmDialog" persistent>
+      <q-card style="min-width: 300px;">
+        <q-card-section class="text-h6">
+          ¿Estás seguro que deseas eliminar esta card?
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="primary" v-close-popup />
+          <q-btn flat label="Eliminar" color="negative" @click="confirmarEliminar" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+
+  </q-page>
+
+</template>
+
+<script setup>
+  import { ref, onMounted } from 'vue';
+  import { useRouter } from 'vue-router'
+  import axios from 'axios'
+  import { io } from "socket.io-client";
+
+  const router = useRouter()
+  const showCreateDialog = ref(false);
+  const showConfirmDialog = ref(false);
+  const cards = ref([]);
+  const newCard = ref({title: '',imagenURL: ''});
+  const selectedCardIndex = ref(null);
+  const selectionMode = ref(false);
+  const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+    withCredentials: true,
+    autoConnect: false
+  });
+
+
+  const fetchUserCards = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+
+    // Usar Promise para manejar la respuesta
+    new Promise((resolve, reject) => {
+      socket.emit("solicitar_cards", (response) => {
+        if (response.error) {
+          console.error("Error:", response.error);
+          if (response.error === "No autorizado") {
+            localStorage.removeItem('user');
+            router.push('/login');
+          }
+          reject(response.error);
+        } else {
+          cards.value = response.cards.map(card => ({
+            id: card.id,
+            title: card.title,
+            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'
+          }));
+          resolve(response.cards);
+        }
+      });
+    }).catch(error => {
+      console.error("Error al obtener cards:", error);
+    });
+  };
+  const handleSubmit = () => {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+
+    const cardData = {
+      title: newCard.value.title,
+      date: formattedDate,
+      imagenURL: newCard.value.imagenURL
+    };
+
+    // Emitimos el evento al servidor
+    socket.emit("create_card", cardData, (response) => {
+      if (response.success) {
+        // Si fue exitoso, agregamos la card localmente
+        cards.value.push({
+          id: response.cardId,
+          title: cardData.title,
+          imagenURL: cardData.imagenURL
+        });
+        CerrarDialogCreate();
+      } else {
+        console.error('Error al guardar la card:', response.message);
+        // Aquí puedes mostrar un mensaje al usuario si quieres
+      }
+    });
+  };
+
+  const toggleSelectionMode = () => {
+      selectionMode.value = !selectionMode.value;
+      selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
+  };
+  const cardClicked = (index) => {
+      if (selectionMode.value) {
+        // modo selección: seleccionar/deseleccionar card
+        if (selectedCardIndex.value === index) {
+          selectedCardIndex.value = null;
+        } else {
+          selectedCardIndex.value = index;
+        }
+      } else {
+        // modo normal: redirigir a /tabla pasando la card o su nombre
+        const card = cards.value[index];
+        router.push({ path: '/tabla', query: { name: card.title, id: card.id } });
+      }
+  };
+  const confirmarEliminar = () => {
+      eliminarCard();
+      showConfirmDialog.value = false;
+  };
+  const eliminarCard = async () => {
+      if (selectedCardIndex.value !== null) {
+    const card = cards.value[selectedCardIndex.value];
+    try {
+      await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cardEliminar`, {
+        id: card.id // suponiendo que `card` tiene una propiedad `id`
+      });
+
+      cards.value.splice(selectedCardIndex.value, 1);
+      selectedCardIndex.value = null;
+    } catch (error) {
+      console.error('Error al eliminar la card:', error);
+    }
+  }
+  };
+    
+  onMounted(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      socket.connect();
+      fetchUserCards();
+    } else {
+      router.push('/login');
+    }
+  });
+</script>
+
+<style>
+.border {
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+
+.border-primary {
+  border-color: #027be3; /* color azul de Quasar */
+}
+</style>
