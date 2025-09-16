@@ -1,41 +1,38 @@
 <template>
   <q-page class=" flex  " >
     <!--  -->
-    <div class="row q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
-        <div class="col-3 bg-blue-grey-9">
+    <div class="row q-pa-md bg-blue-grey-10 text-white  " style="width: 100%; height: 100dvh; ">
+        <div class="col-2 bg-blue-grey-9 full-height">
             <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-grey-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
-                <label>filtro</label>
+                <label> Menu de opciones</label>
             </div>
-            <div class="row items-center q-gutter-sm q-mb-md full-width " style="background-color: #455a63; padding: 10px; border-radius: 5px; min-height: 60px; ">
-            <q-btn color="primary" class="text-white" @click="showCreateDialog = true">
-                Crear
-            </q-btn>
-
-            <q-btn
-                :color="selectionMode ? 'negative' : 'secondary'"
-                class="text-white"
-                @click="toggleSelectionMode"
-            >
-                {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar' }}
-            </q-btn>
-
-            <q-btn
-                color="negative"
-                class="text-white"
-                @click="showConfirmDialog = true"
-                :disable="!selectionMode || selectedCardIndex === null"
-            >
-                Eliminar
-            </q-btn>
-
-            <q-btn
-                color="secondary"
-                class="text-white"
-                @click="editarCard"
-                disable
-            >
-                Editar
-            </q-btn>
+            <div class="row items-center q-gutter-sm q-mb-md full-width " style="background-color: #455a63; padding: 10px; border-radius: 5px; height: 500px; ">
+              <q-btn color="primary" class="text-white" @click="showCreateDialog = true">
+                  Crear
+              </q-btn>
+              <q-btn
+                  :color="selectionMode ? 'negative' : 'secondary'"
+                  class="text-white"
+                  @click="toggleSelectionMode"
+              >
+                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar' }}
+              </q-btn>
+              <q-btn
+                  color="negative"
+                  class="text-white"
+                  @click="showConfirmDialog = true"
+                  :disable="!selectionMode || selectedCardIndex === null"
+              >
+                  Eliminar
+              </q-btn>
+              <q-btn
+                  color="secondary"
+                  class="text-white"
+                  @click="editarCard"
+                  disable
+              >
+                  Editar
+              </q-btn>
             
             </div>
 

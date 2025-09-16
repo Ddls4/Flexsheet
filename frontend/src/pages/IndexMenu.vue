@@ -9,28 +9,6 @@
         </div>
       <div class="col-9" style="background-color: #455a64;" >
 
-      <!-- Carrito de compras -->
-      <div class="q-pa-md">
-        <h5>🛒 Carrito de compra</h5>
-        <div v-if="shoppingCart.length === 0">
-          <q-banner dense class="bg-grey-3 text-grey-9">No hay productos en el carrito.</q-banner>
-        </div>
-        <q-list v-else bordered>
-          <q-item v-for="(product, index) in shoppingCart" :key="index">
-            <q-item-section avatar>
-              <q-img :src="product.imagenURL" style="width: 50px; height: 50px;" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ product.title }}</q-item-label>
-              <q-item-label caption>Precio: ${{ product.price }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-
-
-
-
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
@@ -62,7 +40,7 @@
         <div class="col-6 q-pa-md" style="border-right: 1px solid #ccc;">
           <div v-for="(product, index) in selectedCard?.products || []" :key="index" class="q-mb-md row items-center">
             <q-checkbox
-              :model-value="selectedProducts.has(product)"
+              :model-value="isInCart(product)"
               @update:model-value="val => toggleProductSelection(product, val)"
               class="q-mr-sm"
             />
@@ -97,7 +75,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, reactive, computed  } from 'vue';
+  import { ref, onMounted, reactive, computed, provide, inject   } from 'vue';
 
   import { useRouter } from 'vue-router'
   import { io } from "socket.io-client";
@@ -109,11 +87,11 @@
 
   const selectedProducts = ref(new Set());
 
-    const cards = ref([
+  const cards = ref([
     {
       id: 1,
-      title: 'Combo Productos A',
-      imagenURL: 'https://via.placeholder.com/100',
+      title: 'PoloLavadera',
+      imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
       description: 'Este combo incluye productos frescos y de calidad para el hogar.',
       products: [
         { title: 'Producto 1', price: 10, imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' },
@@ -123,8 +101,8 @@
     },
     {
       id: 2,
-      title: 'Combo Productos B',
-      imagenURL: 'https://via.placeholder.com/100',
+      title: 'Apolopintadero',
+      imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
       description: 'Ideal para el almuerzo familiar, incluye ingredientes frescos.',
       products: [
         { title: 'Producto A', price: 15, imagenURL: 'https://via.placeholder.com/100' },
@@ -144,15 +122,30 @@
 
   
 
-  const toggleProductSelection = (product, isSelected) => {
+  function toggleProductSelection(product, isSelected) {
     if (isSelected) {
-      selectedProducts.value.add(product);
+      // Solo si no está ya agregado
+      if (!shoppingCart.value.some(p => p.title === product.title)) {
+        shoppingCart.value.push(product)
+      }
     } else {
-      selectedProducts.value.delete(product);
+      // Quitar producto si se deselecciona
+      const index = shoppingCart.value.findIndex(p => p.title === product.title)
+      if (index !== -1) {
+        shoppingCart.value.splice(index, 1)
+      }
     }
-  };
+  }
 
-  const shoppingCart = computed(() => Array.from(selectedProducts.value));
+  // const shoppingCart = computed(() => Array.from(selectedProducts.value));
+
+  const shoppingCart = inject('shoppingCart')
+  if (!shoppingCart) {
+    throw new Error('No se encontró el carrito (shoppingCart)')
+  }
+  function isInCart(product) {
+    return shoppingCart.value.some(p => p.title === product.title)
+  }
 
 
   onMounted(() => {
