@@ -15,7 +15,7 @@
                   class="text-white"
                   @click="toggleSelectionMode"
               >
-                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar' }}
+                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar o editar' }}
               </q-btn>
               <q-btn
                   color="negative"
@@ -41,6 +41,22 @@
 
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
+          
+          <div class="flex">
+
+            <div class="bg-blue-grey-10" style=" margin: 5px; height: 500px; width: 200px;">
+              <p> 1 </p>
+              <p> -------------------- </p>
+              <p> 2 </p>
+            </div>
+            <div class="bg-blue-grey-10" style=" margin: 5px; height: 500px; width: 200px;">
+              <p> 1 </p>
+              <p> -------------------- </p>
+              <p> 2 </p>
+
+            </div>
+          </div>
+
 
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
             <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
@@ -67,15 +83,25 @@
     <q-dialog v-model="showCreateDialog" persistent> 
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6"> test Crear Nueva Card</div>
+          <div class="text-h6"> Crear Nueva Card</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.title" type="text"  placeholder="nombre" />
+          <q-input dense v-model="newCard.title" type="text"  placeholder="Nombre" />
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
+          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Descripcion" />
+        </q-card-section>
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Precio" />
+        </q-card-section>
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Titulo" />
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
@@ -85,29 +111,7 @@
       </q-card>
     </q-dialog>
 
- 
-     <!--Diálog para crear nueva Card -->
-    <q-dialog v-model="showCreateDialog" persistent> 
-      <q-card style="min-width: 350px">
-        <q-card-section>
-          <div class="text-h6">Crear Nueva Card</div>
-        </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.title" type="text"  placeholder="nombre" />
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL" autofocus @keyup.enter="showCreateDialog = false" />
-        </q-card-section>
-
-        <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Add address" type="submit" @click="handleSubmit" v-close-popup />
-        </q-card-actions>
-      </q-card>
-
-    </q-dialog>
      <!-- Dialog Confirmación Eliminar -->
     <q-dialog v-model="showConfirmDialog" persistent>
       <q-card style="min-width: 300px;">
