@@ -36,7 +36,7 @@
         </q-toolbar-title>
 
 
-        <div class="desktop-only"> 
+        <div v-if="$q.screen.gt.xs"> 
           <q-btn label="Registro" color="blue-grey-10" :to="`/Registro`" />
           <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
           <q-btn label="Tienda" color="blue-grey" @click="drawerCompras = true" />
@@ -45,6 +45,7 @@
       </q-toolbar>
     </q-header>
     
+    <!-- Drawer del Memu lateral -->
     <q-drawer
       v-model="leftDrawerOpen"
       overlay
@@ -56,22 +57,62 @@
         <div class="q-mb-md">
             <label class="text-weight-bolder text-h2">AltaShop</label>
         </div>
-        
-        <div class="column q-gutter-sm q-mb-lg">
-            <label class="text-subtitle1">Historial de compras</label>
-            <label class="text-subtitle1">Registrar comercio</label>
-            <label class="text-subtitle1">Configuracion</label>
-            <label class="text-subtitle1">Soporte</label>
+        <!--
+        <div class="column items-center q-gutter-md q-mb-lg text-center">
+          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Historial de compras</div>
+          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Registrar comercio</div>
+          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Configuración</div>
+          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Soporte</div>
 
-            <router-link to="/Tabla" class="flex items-center text-white" >
-              <label class="text-subtitle1">Tabla</label>
-            </router-link>
-            <router-link to="/MenuEmpresa" class="flex items-center text-white" >
-              <label class="text-subtitle1">Menu de empresa (tus articulos)</label>
-            </router-link>
-            
-            
+          <router-link to="/Tabla" class="text-white text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">
+            Tabla
+          </router-link>
+          <router-link to="/MenuEmpresa" class="text-white text-subtitle1 text-weight-medium text-center" style="letter-spacing: 0.5px;">
+            Menu de empresa (tus artículos)
+          </router-link>
         </div>
+      -->
+
+
+      <q-list separator class="q-mb-lg text-white">
+        <q-item clickable>
+          <q-item-section avatar><q-icon name="history" /></q-item-section>
+          <q-item-section>Historial de compras</q-item-section>
+        </q-item>
+
+        <q-item clickable>
+          <q-item-section avatar><q-icon name="store" /></q-item-section>
+          <q-item-section>Registrar comercio</q-item-section>
+        </q-item>
+
+        <q-item clickable>
+          <q-item-section avatar><q-icon name="settings" /></q-item-section>
+          <q-item-section>Configuración</q-item-section>
+        </q-item>
+
+        <q-item clickable>
+          <q-item-section avatar><q-icon name="help" /></q-item-section>
+          <q-item-section>Soporte</q-item-section>
+        </q-item>
+
+        <router-link to="/Tabla" class="text-white">
+          <q-item clickable>
+            <q-item-section avatar><q-icon name="table_view" /></q-item-section>
+            <q-item-section>Tabla</q-item-section>
+          </q-item>
+        </router-link>
+
+        <router-link to="/MenuEmpresa" class="text-white">
+          <q-item clickable>
+            <q-item-section avatar><q-icon name="inventory" /></q-item-section>
+            <q-item-section>Menu de empresa</q-item-section>
+          </q-item>
+        </router-link>
+      </q-list>
+
+
+
+
         <q-space />
          <div class="column q-gutter-md ">
             <div class="row q-gutter-sm ">
