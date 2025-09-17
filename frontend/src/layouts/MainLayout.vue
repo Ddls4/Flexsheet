@@ -36,7 +36,7 @@
         </q-toolbar-title>
 
 
-        <div> 
+        <div class="desktop-only"> 
           <q-btn label="Registro" color="blue-grey-10" :to="`/Registro`" />
           <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
           <q-btn label="Tienda" color="blue-grey" @click="drawerCompras = true" />
@@ -74,9 +74,9 @@
         </div>
         <q-space />
          <div class="column q-gutter-md ">
-            <div class="row q-gutter-sm">
-              <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" class="full-width q-mb-sm"/>
-              <q-btn label="Login" color="blue-grey-10" :to="`/Login`" class="full-width"/>
+            <div class="row q-gutter-sm ">
+              <q-btn label="Registro" color="blue-grey-10" :to="`/registro`" class="full-width q-mb-sm" />
+              <q-btn label="Login" color="blue-grey-10" :to="`/Login`" class="full-width" />
             </div>
             <div class="q-mt-md text-caption">
               <div>Quasar: v{{ $q.version }}</div>

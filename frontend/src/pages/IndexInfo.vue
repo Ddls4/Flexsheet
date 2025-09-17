@@ -2,21 +2,21 @@
   <q-page class=" flex  " >
     <div class="column q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
 
-      <div class="col-6 bg-grey-7">
+      <div class="col-6 bg-blue-grey-7">
         <div class="text-center q-mb-md" style="color: white;">
           <div style="padding: 10vh;">
-              <q-label class="text-h2">AltaShop</q-label>
+              <q-label class="text-h2 text-weight-bolder">AltaShop</q-label>
           </div>
-            <div>   
-                <q-label class="text-subtitle1 text-center">
+            <div class="text-center q-mb-md white" style="margin: 30px;">   
+                <q-label class="text-body1 text-center" style="margin: 5px;">
                     Somos un grupo de emprendedores que te invita a dar el salto al mundo digital, abriendo las puertas de tu negocio a nuevas oportunidades en internet.
                 </q-label>
             </div>
         </div>
       </div>
-      <div class="col-6 bg-grey-8" style="background-color: green ;">
-            <div class="text-center q-mb-md" style="color: white;">   
-                <q-label class="text-subtitle1 text-center">Para empezar a usar la aplicación aprete en productos
+      <div class="col-6 bg-blue-grey-8">
+            <div class="text-center q-mb-md white" style="margin: 50px;">   
+                <q-label class="text-body1 text-center" style="margin: 10px;">Para empezar a usar la aplicación aprete en productos
                 Puedes ir a opciones para modificar a tu gusto la web. <br>
                 Al apretar en productos podras ver los productos que tenemos para ofrecerte y agregar al carrito
                 </q-label>
