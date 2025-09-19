@@ -14,7 +14,7 @@
           <div class="row items-center q-gutter-sm">
             <router-link to="/" class="flex items-center" >
               <img
-                src="~assets/icon.svg"
+                src="~assets/AS_WB.svg"
                 alt="Logo"
                 style="height: 35px; width: 35px; background-color: white; border-radius: 10px; padding: 0px;"
               />
@@ -37,7 +37,7 @@
 
 
         <div v-if="$q.screen.gt.xs"> 
-          <q-btn label="Registro" color="blue-grey-10" :to="`/Registro`" />
+          <q-btn label="Registro" color="blue-6" :to="`/Registro`" />
           <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
           <q-btn label="Tienda" color="blue-grey" @click="drawerCompras = true" />
         </div>
