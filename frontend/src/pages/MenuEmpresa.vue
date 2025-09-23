@@ -7,21 +7,26 @@
                 <label> Menu de opciones</label>
             </div>
             <div class="row items-center q-gutter-sm q-mb-md full-width " style="background-color: #455a63; padding: 10px; border-radius: 5px; height: 500px; ">
-              <q-btn color="primary" class="text-white" @click="showCreateDialog = true">
+              <q-btn color="primary" 
+              class="text-white" 
+              @click="showCreateDialog = true"
+              icon="add">
                   Crear
               </q-btn>
               <q-btn
                   :color="selectionMode ? 'negative' : 'secondary'"
                   class="text-white"
                   @click="toggleSelectionMode"
+                  icon="select_all"
               >
-                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar para eliminar o editar' }}
+                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
               </q-btn>
               <q-btn
                   color="negative"
                   class="text-white"
                   @click="showConfirmDialog = true"
                   :disable="!selectionMode || selectedCardIndex === null"
+                  icon="remove"
               >
                   Eliminar
               </q-btn>
@@ -30,6 +35,7 @@
                   class="text-white"
                   @click="editarCard"
                   disable
+                  icon="edit"
               >
                   Editar
               </q-btn>
@@ -42,21 +48,27 @@
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
           
-          <div class="flex">
-
-            <div class="bg-blue-grey-10" style=" margin: 5px; height: 500px; width: 200px;">
-              <p> 1 </p>
-              <p> -------------------- </p>
-              <p> 2 </p>
-            </div>
-            <div class="bg-blue-grey-10" style=" margin: 5px; height: 500px; width: 200px;">
-              <p> 1 </p>
-              <p> -------------------- </p>
-              <p> 2 </p>
-
-            </div>
+          <div class="q-mt-lg">
+              <div v-for="(item, index) in productos" :key="index" class="row q-mb-md">
+                <div class="col-6">
+                    <q-card>
+                      <q-card-section>
+                        <div class="text-subtitle1">{{ item.nombre }}</div>
+                        <q-img :src="item.imagen" :alt="item.nombre" class="q-my-sm" style="max-height: 150px;" />
+                        <div class="text-h6 text-primary">${{ item.precio }}</div>
+                      </q-card-section>
+                    </q-card>
+                </div>
+                <div class="col-6">
+                    <q-card>
+                      <q-card-section>
+                        <div class="text-subtitle2">{{ item.titulo }}</div>
+                        <div>{{ item.descripcion }}</div>
+                      </q-card-section>
+                    </q-card>
+                </div>
+              </div>
           </div>
-
 
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
             <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
@@ -83,30 +95,21 @@
     <q-dialog v-model="showCreateDialog" persistent> 
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6"> Crear Nueva Card</div>
+          <div class="text-h6"> Agregar Producto </div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.title" type="text"  placeholder="Nombre" />
+          <q-input dense v-model="form.nombre"     placeholder="Nombre" />
+          <q-input dense v-model="form.imagen"  placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
+          <q-input dense v-model="form.descripcion"  placeholder="Descripcion" />
+          <q-input dense v-model="form.precio"  placeholder="Precio" />
+          <q-input dense v-model="form.titulo"  placeholder="Titulo" />
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="url" placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Descripcion" />
-        </q-card-section>
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Precio" />
-        </q-card-section>
-        <q-card-section class="q-pt-none">
-          <q-input dense v-model="newCard.imagenURL" type="text" placeholder="Titulo" />
-        </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Add address" type="submit" @click="handleSubmit" v-close-popup />
+          <q-btn flat label="Cancel" icon-right="cancel" v-close-popup />
+          <q-btn flat label="Agregar" icon-right="add" type="submit" @click="agregarProducto" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -177,6 +180,8 @@
       console.error("Error al obtener cards:", error);
     });
   };
+
+  /*
   const handleSubmit = () => {
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
@@ -203,6 +208,24 @@
       }
     });
   };
+*/
+  function agregarProducto() {
+    if (!form.value.nombre || !form.value.imagen || !form.value.precio) {
+      alert('Completa los campos obligatorios');
+      return;
+    }
+
+    productos.value.push({ ...form.value });
+    // Reset form
+    form.value = {
+      nombre: '',
+      titulo: '',
+      imagen: '',
+      precio: '',
+      descripcion: ''
+    };
+    dialog.value = false;
+  }
 
   const toggleSelectionMode = () => {
       selectionMode.value = !selectionMode.value;
