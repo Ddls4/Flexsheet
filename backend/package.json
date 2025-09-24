@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "set NODE_OPTIONS=--experimental-vm-modules&& jest ./testing/text.test.js",
-    "dev": "concurrently \"cd backend && node server.js\" \"cd frontend && quasar dev\"",
+    "dev": "concurrently \"cd backend && node indexMongo.js\" \"cd frontend && quasar dev\"",
     "build": "cd frontend && quasar build",
-    "start": "node backend/server.js"
+    "start": "node indexMongo.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongodb": "^6.18.0",
+    "mongoose": "^8.18.2",
     "morgan": "^1.10.0",
     "mysql2": "^3.14.1",
     "socket.io": "^4.8.1"
