@@ -2,7 +2,11 @@ import { servidor,io  } from "./config.js";
 import { conectarMongo, getDB, registrar } from "./Base_de_datos/Mongo.js";
 
 // Conectar DB
-conectarMongo()
+const iniciar = async () => {
+  await conectarMongo(); 
+};
+
+iniciar();
 
 servidor.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));

@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 // URL de conexión y base de datos
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
-const dbName = "pruebadb"; // Nombre de la base de datos cambiar a un .env
+const dbName = "ddfjg_P"; // Nombre de la base de datos cambiar a un .env
 
 let db;
 
@@ -14,7 +14,8 @@ const conectarMongo = async () => {
     try {
       await client.connect();
       db = client.db(dbName);
-      console.log("Conectado a MongoDB");
+
+      console.log("🟢 Conectado a MongoDB: ", dbName);
       return db
     } catch (e) {
       console.error("Error al conectar MongoDB:", e);
@@ -203,6 +204,7 @@ if (!id) {
 
 export { 
   conectarMongo,
+  getDB,
     registrar,
     login,
     createCard,
