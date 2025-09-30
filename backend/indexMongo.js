@@ -9,34 +9,28 @@ import { Server } from "socket.io";
 import morgan from "morgan";
 import { registrar, login, createCard, getCardsByUser, guardarTabla, cargarTabla, eliminarCard } from "./Base_de_datos/Mongo.js";
 
-config(); // Cargar .env
+config(); // Cargar variables del .env
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- EXPRESS ---
 const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
-
-const PORT = process.env.PORT || 9000;
-const HOST = process.env.P_IP || 'localhost';
-const PORT_W = process.env.PORT_W || PORT;
 
 // --- CORS ---
 app.use(cors({
-  origin: `http://${HOST}:${PORT_W}`,
+  origin: ["http://localhost:9000", "http://127.0.0.1:5500"], // tu frontend
   credentials: true
 }));
 
-// --- SESSION ---
+// --- SESIÓN ---
 const sessionMiddleware = session({
-  secret: "secret-key",
+  secret: process.env.SESSION_SECRET || "supersecreto123",
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 86400000, sameSite: 'lax' } 
+  cookie: { secure: false, maxAge: 86400000, sameSite: 'lax' }
 });
 app.use(sessionMiddleware);
 
@@ -63,7 +57,7 @@ app.post('/login', async (req, res) => {
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: `http://${HOST}:${PORT_W}`,
+    origin: ["http://localhost:9000", "http://127.0.0.1:5500"],
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -75,7 +69,6 @@ io.use((socket, next) => { socket.session = socket.request.session; next(); });
 io.on("connection", (socket) => {
   console.log(`Nuevo cliente conectado: ${socket.id}`);
 
-  // --- Eventos ---
   socket.on("registrar", async ({ username, password }, callback) => {
     try {
       const userId = await registrar(username, password);
@@ -139,7 +132,10 @@ io.on("connection", (socket) => {
 });
 
 // --- LEVANTAR SERVIDOR ---
+const PORT = process.env.PORT || 9000;
+const HOST = process.env.P_IP || "localhost";
+
 httpServer.listen(PORT, HOST, () => {
   console.log(`Servidor escuchando en http://${HOST}:${PORT}`);
-  console.log(`WebSocket disponible en ws://${HOST}:${PORT_W}`);
+  console.log(`WebSocket disponible en ws://${HOST}:${PORT}`);
 });
