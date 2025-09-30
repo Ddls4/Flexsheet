@@ -6,39 +6,45 @@ import bcrypt from "bcrypt";
 // URL de conexión y base de datos
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
-const dbName = "pruebadb";
-const db = client.db(dbName);
-const collection = db.collection("usuarios");
+const dbName = "ddfjg_P"; // Nombre de la base de datos cambiar a un .env
+
+let db;
+
 const conectarMongo = async () => {
-    await client.connect();
-    console.log("Conectado a MongoDB");
-    return client.db(dbName);  // Retorna la base de datos
+    try {
+      await client.connect();
+      db = client.db(dbName);
+
+      console.log("🟢 Conectado a MongoDB: ", dbName);
+      return db
+    } catch (e) {
+      console.error("Error al conectar MongoDB:", e);
+    }
 }
+const getDB = () => db;
 
 const registrar = async (username, password) => {
-    const hashedPassword = await bcrypt.hash(password, 10);  // Encriptamos la contraseña
-
+    const db = getDB();
+    if (!db) throw new Error("Base de datos no inicializada");
+    
     try {
-        const db = await conectarMongo();  // Conectamos a la base de datos
         const usersCollection = db.collection('usuarios');  // Obtenemos la colección 'usuarios'
-
         // Verificamos si el usuario ya existe en la base de datos
         const existingUser = await usersCollection.findOne({ username });
         if (existingUser) {
             console.log("El usuario ya existe");
             return;  // Salimos si el usuario ya está registrado
         }
-
+        const hashedPassword = await bcrypt.hash(password, 10); // Encriptar la contraseña
         // Insertamos el nuevo usuario con la contraseña encriptada
         const result = await usersCollection.insertOne({
             username,
             password: hashedPassword,
         });
-
         console.log("Usuario registrado:", username, "ID:", result.insertedId);  // Mostramos el ID del nuevo usuario
     } catch (err) {
         console.error("Error al registrar:", err);
-        throw err;  // Lanza el error si ocurre algún problema
+        throw err; 
     }
 };
 
@@ -197,6 +203,8 @@ if (!id) {
 } */
 
 export { 
+  conectarMongo,
+  getDB,
     registrar,
     login,
     createCard,

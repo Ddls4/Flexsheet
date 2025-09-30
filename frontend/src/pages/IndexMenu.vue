@@ -1,17 +1,50 @@
 <template>
   <q-page class=" flex  " >
     <!--  -->
-    <div class="row q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
-        <div class="col-3 bg-blue-grey-9">
-            <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-grey-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
-                <label>filtro</label>
-            </div>
-        </div>
-      <div class="col-9" style="background-color: #455a64;" >
+    <div class="row q-pa-md bg-blue-grey-10 text-white fit ">
+        <div class="col-3 col-md-3 col-lg-3 col-xl-2 col-12 bg-blue-grey-9 q-mb-md q-order-1 q-order-sm-0 bg-blue-grey-9">
+          <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
+            <label>Filtro</label>
+          </div>
 
+          <div class="q-pa-md q-gutter-md">
+            <!-- Selección de fecha con single-range -->
+            <q-date 
+              v-model="selectedDateRange" 
+              @update:model-value="updateDisplayText" 
+              mask="YYYY-MM-DD"
+              color="blue-5"
+              dark=""
+              range
+            />
+
+            <!-- Selección de hora -->
+            <q-time 
+              v-model="selectedTime" 
+              @update:model-value="updateDisplayText" 
+              format24h
+              color="blue-5"
+              dark=""
+            />
+
+            <!-- Texto que muestra la fecha y hora -->
+            <div class="q-mt-md text-h6">
+              Fecha y hora seleccionadas: {{ displayText }}
+            </div>
+          </div>
+
+          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Nombre" />
+          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Departamento" />
+          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Ciudad" />
+          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Precio" />
+
+
+        </div>
+
+      <div class="col-9" style="background-color: #455a64;" >
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
-          <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
+          <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-4 col-md-3 col-lg-2">
             <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
             @click="cardClicked(index)">
               
@@ -30,7 +63,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
   <q-dialog v-model="Testcard" persistent>
@@ -86,6 +118,8 @@
   const Testcard = ref(false);
 
   const selectedProducts = ref(new Set());
+  
+  
 
   const cards = ref([
     {
@@ -151,6 +185,29 @@
   onMounted(() => {
 
   });
+
+
+const selectedDateRange = ref({ from: '', to: '' })
+const selectedTime = ref('')
+const displayText = ref('Ninguna fecha u hora seleccionada')
+
+// Función que actualiza el texto
+function updateDisplayText() {
+  const from = selectedDateRange.value.from
+  const from2 = selectedDateRange.value.to
+  const time = selectedTime.value
+
+  if (from && time) {
+    displayText.value = `Seleccionaste: ${from} asta ${from2} a las ${time}`
+  } else if (from) {
+    displayText.value = `Fecha seleccionada: ${from} asta ${from2} (hora no seleccionada)`
+  } else if (time) {
+    displayText.value = `Hora seleccionada: ${time} (fecha no seleccionada)`
+  } else {
+    displayText.value = 'Ninguna fecha u hora seleccionada'
+  }
+}
+  
 </script>
 
 <style>

@@ -14,7 +14,7 @@
           <div class="row items-center q-gutter-sm">
             <router-link to="/" class="flex items-center" >
               <img
-                src="~assets/icon.svg"
+                src="~assets/AS_WB.svg"
                 alt="Logo"
                 style="height: 35px; width: 35px; background-color: white; border-radius: 10px; padding: 0px;"
               />
@@ -37,9 +37,9 @@
 
 
         <div v-if="$q.screen.gt.xs"> 
-          <q-btn label="Registro" color="blue-grey-10" :to="`/Registro`" />
-          <q-btn label="Login" color="blue-grey-10" :to="`/Login`" />
-          <q-btn label="Tienda" color="blue-grey" @click="drawerCompras = true" />
+          <q-btn label="Registro" icon="playlist_add" color="blue-6" :to="`/Registro`" />
+          <q-btn label="Login" icon="login" color="blue-6" :to="`/Login`" />
+          <q-btn icon="shopping_cart" color="blue" @click="drawerCompras = true" round />
         </div>
         
       </q-toolbar>
@@ -57,22 +57,6 @@
         <div class="q-mb-md">
             <label class="text-weight-bolder text-h2">AltaShop</label>
         </div>
-        <!--
-        <div class="column items-center q-gutter-md q-mb-lg text-center">
-          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Historial de compras</div>
-          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Registrar comercio</div>
-          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Configuración</div>
-          <div class="text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">Soporte</div>
-
-          <router-link to="/Tabla" class="text-white text-subtitle1 text-weight-medium" style="letter-spacing: 0.5px;">
-            Tabla
-          </router-link>
-          <router-link to="/MenuEmpresa" class="text-white text-subtitle1 text-weight-medium text-center" style="letter-spacing: 0.5px;">
-            Menu de empresa (tus artículos)
-          </router-link>
-        </div>
-      -->
-
 
       <q-list separator class="q-mb-lg text-white">
         <q-item clickable>
@@ -111,8 +95,6 @@
       </q-list>
 
 
-
-
         <q-space />
          <div class="column q-gutter-md ">
             <div class="row q-gutter-sm ">
@@ -132,8 +114,9 @@
     
     
     <!-- Drawer del carrito -->
-    <q-drawer v-model="drawerCompras" side="right" overlay>
-      <div class="q-pa-md">
+    <q-drawer v-model="drawerCompras" side="right" overlay 
+    class="">
+      <div class="q-pa-md full-height column" >
         <h5>🛒 Carrito de compra</h5>
 
         <div v-if="shoppingCart.length === 0">
@@ -153,6 +136,12 @@
             </q-item-section>
           </q-item>
         </q-list>
+
+        <q-space />
+
+        <div class=" flex justify-center " style="margin: 5px;">
+          <q-btn class="bg-blue-4"> Comprar </q-btn>
+        </div>
       </div>
     </q-drawer>
 
