@@ -35,16 +35,41 @@ io.on("connect", (socket) => {
   // -------------------
   // Usuario
   // -------------------
-  socket.on("registrar_usuario", async ({ nombre, correo, contraseña }, callback) => {
-    try {
-      const nuevoUsuario = new usuario({ Nombre_U: nombre, Correo_electronico: correo, Contraseña: contraseña });
-      await nuevoUsuario.save();
-      callback({ success: true, message: "Usuario registrado" });
-    } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al registrar usuario" });
+socket.on("registrar", async (data) => {
+  try {
+    console.log("Datos recibidos:", data);
+
+    // Obtener o inicializar contador
+    let counter = await Counter.findOne({ name: 'usuario_id' });
+    if (!counter) {
+      counter = await Counter.create({ name: 'usuario_id', value: 1 });
+    } else {
+      counter.value += 1;
+      await counter.save();
     }
-  });
+
+    const nuevoUsuario = await Usuario.create({
+      ID_U: counter.value,
+      Nombre_U: data.username,
+      Contraseña: data.password
+    });
+
+    console.log("Usuario registrado:", nuevoUsuario);
+
+    socket.emit("registroResultado", {
+      success: true,
+      message: "Usuario registrado con éxito",
+      user: nuevoUsuario
+    });
+
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    socket.emit("registroResultado", {
+      success: false,
+      message: "Error al registrar usuario"
+    });
+  }
+});
 
   socket.on("login_usuario", async ({ correo, contraseña }, callback) => {
     try {
@@ -108,6 +133,7 @@ io.on("connect", (socket) => {
   // -------------------
   // Card
   // -------------------
+  // Crear card en menu de empresa
   socket.on("crear_card", async ({ nombre, fecha, imagenURL }, callback) => {
     try {
       const nuevaCard = new card({ Nombre_S: nombre, fecha, Imagen: imagenURL });
@@ -118,7 +144,7 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al crear card" });
     }
   });
-
+  // Mostrar card en menu de empresa
   socket.on("listar_cards", async (callback) => {
     try {
       const cards = await card.find();
@@ -128,7 +154,7 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al obtener cards" });
     }
   });
-
+  // Eliminar card en menu de empresa
   socket.on("eliminar_card", async ({ id }, callback) => {
     try {
       await card.findByIdAndDelete(id);
@@ -138,6 +164,8 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al eliminar card" });
     }
   });
+  // Editar card en menu de empresa
+
 
   // -------------------
   // Tabla
@@ -169,12 +197,4 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al cargar tabla" });
     }
   });
-});
-
-// definís rutas, sockets, middlewares, etc.
-
-// al final:
-const PORT = 9000;
-servidor.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

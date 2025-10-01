@@ -6,5 +6,11 @@ https://drive.google.com/drive/folders/13IymLqDYeTztX4xZW45r0bzOW11Dzxnw?usp=sha
 
 
 Backend:
+PORT = 80
+PORT_W = 900
+P_IP = "" // tu IP
+
 Frontend:
+VITE_P_IP= "" // tu ip
+
 Testing:

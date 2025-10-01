@@ -46,14 +46,15 @@
     const mensaje = ref('')
 
     const RegistrarUsuario = () => {
-        socket.emit('registrar', form.value, (response) => {
-            if (response.success) {
-                mensaje.value = 'Usuario registrado con éxito'
-                window.location.href = '/Login'; 
-            } else {
-                mensaje.value = response.message || 'Error al registrar usuario'
-            }
-        })
+        socket.emit('registrar', form.value);
+        socket.on('registroResultado', (response) => {
+        if (response.success) {
+            mensaje.value = 'Usuario registrado con éxito';
+            window.location.href = '/Login'; 
+        } else {
+            mensaje.value = response.message || 'Error al registrar usuario';
+        }
+        });
     }
 
 
