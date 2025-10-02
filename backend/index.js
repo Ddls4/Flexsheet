@@ -1,20 +1,17 @@
-// indexMongo.js
 import path from "path";
 import { servidor, io } from "./config.js";
-import mongoose from "mongoose";
 import usuario from "./models/usuario.js";
 import negocio from "./models/negocio.js";
 import servicio from "./models/servicio.js";
 import card from "./models/card.js";
 import tabla from "./models/tabla.js";
+import bcrypt from "bcrypt";
+import { initDB } from './initDB.js';
 
 // -------------------
 // Conexión a MongoDB
 // -------------------
-mongoose.connect("mongodb://127.0.0.1:27017/ddfjg")
-  .then(() => console.log("MongoDB conectado"))
-  .catch(err => console.error("Error en MongoDB:", err));
-
+  initDB();
 // -------------------
 // Rutas HTTP básicas
 // -------------------
@@ -35,11 +32,20 @@ io.on("connect", (socket) => {
   // -------------------
   // Usuario
   // -------------------
-socket.on("registrar", async (data) => {
+socket.on("registrar", async (data, callback) => {
   try {
     console.log("Datos recibidos:", data);
 
-    // Obtener o inicializar contador
+    // 1️⃣ Verificar si ya existe el usuario
+    const usuarioExistente = await Usuario.findOne({ Nombre_U: data.username });
+    if (usuarioExistente) {
+      return callback({
+        success: false,
+        message: "El nombre de usuario ya está en uso"
+      });
+    }
+
+    // 2️⃣ Obtener o inicializar contador
     let counter = await Counter.findOne({ name: 'usuario_id' });
     if (!counter) {
       counter = await Counter.create({ name: 'usuario_id', value: 1 });
@@ -48,23 +54,31 @@ socket.on("registrar", async (data) => {
       await counter.save();
     }
 
+    // 3️⃣ Hashear contraseña
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // 4️⃣ Crear usuario nuevo
     const nuevoUsuario = await Usuario.create({
       ID_U: counter.value,
       Nombre_U: data.username,
-      Contraseña: data.password
+      Contraseña: hashedPassword
     });
 
     console.log("Usuario registrado:", nuevoUsuario);
 
-    socket.emit("registroResultado", {
+    callback({
       success: true,
       message: "Usuario registrado con éxito",
-      user: nuevoUsuario
+      user: {
+        ID_U: nuevoUsuario.ID_U,
+        Nombre_U: nuevoUsuario.Nombre_U
+        // ⚠️ No devolvemos la contraseña
+      }
     });
 
   } catch (error) {
     console.error("Error al registrar usuario:", error);
-    socket.emit("registroResultado", {
+    callback({
       success: false,
       message: "Error al registrar usuario"
     });
