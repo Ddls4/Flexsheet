@@ -12,6 +12,7 @@ import { initDB } from './initDB.js';
 // Conexión a MongoDB
 // -------------------
   initDB();
+  
 // -------------------
 // Rutas HTTP básicas
 // -------------------
