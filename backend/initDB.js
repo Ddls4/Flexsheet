@@ -6,11 +6,9 @@ import Card from "./models/card.js";
 
 export async function initDB() {
   try {
-    await mongoose.connect("mongodb://127.0.0.1:27017/ddfjg", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect("mongodb+srv://DDFJG:culo123@cluster0.lwg6hol.mongodb.net/ddfjg?retryWrites=true&w=majority&appName=Cluster0", {
     });
-    console.log("MongoDB conectado");
+      console.log("MongoDB conectado");
 
     // Insertar datos de prueba
     const usuario = new Usuario({
