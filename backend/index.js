@@ -1,10 +1,10 @@
 import path from "path";
 import { servidor, io } from "./config.js";
-import Usuario from "./models/usuario.js";
-import Negocio from "./models/negocio.js";
-import Card from "./models/card.js";
+import Usuario from "./Sockets/usuario.js";
+import Negocio from "./Sockets/negocio.js";
+import Card from "./Sockets/card.js";
 
-import tabla from "./models/tabla.js";
+import tabla from "./Sockets/tabla.js";
 import bcrypt from "bcrypt";
 import { initDB } from './initDB.js';
 

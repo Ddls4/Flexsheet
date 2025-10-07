@@ -1,8 +1,8 @@
 // initDB.js
 import mongoose from "mongoose";
-import Usuario from "./models/usuario.js";
-import Negocio from "./models/negocio.js";
-import Card from "./models/card.js";
+import Usuario from "./Sockets/usuario.js";
+import Negocio from "./Sockets/negocio.js";
+import Card from "./Sockets/card.js";
 import dotenv from "dotenv";
 
 dotenv.config();

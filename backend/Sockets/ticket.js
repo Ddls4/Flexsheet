@@ -1,4 +1,4 @@
-// models/ticket.js
+// Sockets/ticket.js
 import mongoose from "mongoose";
 
 const ticketSchema = new mongoose.Schema({
