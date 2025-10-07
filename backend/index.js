@@ -1,9 +1,9 @@
 import path from "path";
 import { servidor, io } from "./config.js";
-import usuario from "./models/usuario.js";
-import negocio from "./models/negocio.js";
-import servicio from "./models/servicio.js";
-import card from "./models/card.js";
+import Usuario from "./models/usuario.js";
+import Negocio from "./models/negocio.js";
+import Card from "./models/card.js";
+
 import tabla from "./models/tabla.js";
 import bcrypt from "bcrypt";
 import { initDB } from './initDB.js';
@@ -38,7 +38,7 @@ io.on("connect", (socket) => {
     try {
       console.log("Datos recibidos:", data);
 
-      // 1️⃣ Verificar si ya existe el usuario
+      // Verificar si ya existe el usuario
       const usuarioExistente = await Usuario.findOne({ Nombre_U: data.username });
       if (usuarioExistente) {
         return callback({
@@ -47,34 +47,23 @@ io.on("connect", (socket) => {
         });
       }
 
-      // 2️⃣ Obtener o inicializar contador
-      let counter = await Counter.findOne({ name: 'usuario_id' });
-      if (!counter) {
-        counter = await Counter.create({ name: 'usuario_id', value: 1 });
-      } else {
-        counter.value += 1;
-        await counter.save();
-      }
-
-      // 3️⃣ Hashear contraseña
+      // Hashear contraseña
       const hashedPassword = await bcrypt.hash(data.password, 10);
 
-      // 4️⃣ Crear usuario nuevo
+      // Crear usuario nuevo
       const nuevoUsuario = await Usuario.create({
-        ID_U: counter.value,
         Nombre_U: data.username,
         Contraseña: hashedPassword
       });
 
-      console.log("Usuario registrado:", nuevoUsuario);
+      console.log("Usuario registrado:", nuevoUsuario.Nombre_U);
 
       callback({
         success: true,
         message: "Usuario registrado con éxito",
         user: {
-          ID_U: nuevoUsuario.ID_U,
+          ID_U: nuevoUsuario._id,
           Nombre_U: nuevoUsuario.Nombre_U
-          // ⚠️ No devolvemos la contraseña
         }
       });
 
