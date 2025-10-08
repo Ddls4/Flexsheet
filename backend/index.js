@@ -34,6 +34,8 @@ io.on("connect", (socket) => {
   // -------------------
   // Usuario
   // -------------------
+
+
   socket.on("registrar", async (data, callback) => {
     try {
       console.log("Datos recibidos:", data);
@@ -75,17 +77,33 @@ io.on("connect", (socket) => {
       });
     }
   });
+  socket.on("login", async ({ username, password }, callback) => {
+    console.log("Intentando login:", username);
 
-  socket.on("login", async ({ correo, contraseña }, callback) => {
     try {
-      const user = await usuario.findOne({ Correo_electronico: correo, Contraseña: contraseña });
-      if (!user) return callback({ success: false, message: "Usuario o contraseña incorrectos" });
+      const user = await Usuario.findOne({ Nombre_U: username });
+      console.log("Usuario encontrado:", user);
+
+      if (!user) {
+        return callback({ success: false, message: "Usuario o contraseña incorrectos" });
+      }
+
+      // Comparar contraseña ingresada con la contraseña hasheada en la base de datos
+      const isMatch = await bcrypt.compare(password, user.Contraseña);
+
+      if (!isMatch) {
+        return callback({ success: false, message: "Usuario o contraseña incorrectos" });
+      }
+
+      // Si todo bien, retornar los datos del usuario
       callback({ success: true, user: { id: user._id, nombre: user.Nombre_U } });
+
     } catch (error) {
-      console.error(error);
+      console.error("Error en login:", error);
       callback({ success: false, message: "Error en login" });
     }
   });
+
 
   // -------------------
   // Negocio
@@ -100,7 +118,7 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al crear negocio" });
     }
   });
-
+  // Muestra en el menu principal las empresas que tenemos en la BD
   socket.on("listar_negocios", async (callback) => {
     try {
       const negocios = await negocio.find();
@@ -171,6 +189,7 @@ io.on("connect", (socket) => {
 // -------------------
 // Tickets
 // -------------------
+/*
 socket.on("crear_ticket", async (data, callback) => {
   try {
     const nuevoTicket = await ticket.create({
@@ -207,7 +226,7 @@ socket.on("listar_tickets", async (callback) => {
     callback({ success: false, message: "Error al listar tickets" });
   }
 });
-
+*/
 // -------------------
   // Extras............ usuario al comprar 
   // -------------------

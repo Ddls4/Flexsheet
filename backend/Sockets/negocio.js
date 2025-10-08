@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 const negocioSchema = new mongoose.Schema({
   ID_N: String,
   Nombre_N: String,
+  // falta imgen
+  // Datos para el filtro
   Tipo_N: String,
   Departamento: String,
   Ciudad: String,

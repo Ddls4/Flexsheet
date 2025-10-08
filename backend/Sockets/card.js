@@ -5,6 +5,7 @@ const cardSchema = new mongoose.Schema({
   title: String,
   date: String,
   imagenURL: String,
+  // Precio
   ID_S: String,
   ID_N: String
 });
