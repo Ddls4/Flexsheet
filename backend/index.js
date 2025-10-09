@@ -108,16 +108,45 @@ io.on("connect", (socket) => {
   // -------------------
   // Negocio
   // -------------------
+  // Esto esta en el RegistroEmpresa.vue
   socket.on("crear_negocio", async (data, callback) => {
+    console.log("Datos para comprobar: ",data)
     try {
-      const nuevoNegocio = new negocio(data);
+      // Validación mínima (opcional pero recomendable)
+      if (!data.username || !data.departamento || !data.ciudad) {
+        return callback({
+          success: false,
+          message: "Faltan campos obligatorios"
+        });
+      }
+
+      // Crear una instancia del modelo con los datos recibidos y el usuario del socket
+      const nuevoNegocio = new Negocio({
+        Nombre_N: data.username,
+        url_i: data.url_imagen || '', // Por si no envían imagen
+        Departamento: data.departamento,
+        Ciudad: data.ciudad,
+        usuario: data.usuario      // Referencia al usuario autenticado
+      });
+
+      // Guardar en la base de datos
       await nuevoNegocio.save();
-      callback({ success: true, negocioId: nuevoNegocio._id });
+
+      // Responder al cliente
+      callback({
+        success: true,
+        negocioId: nuevoNegocio._id
+      });
+
     } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al crear negocio" });
+      console.error("Error al crear negocio:", error);
+      callback({
+        success: false,
+        message: "Error al crear negocio"
+      });
     }
   });
+
   // Muestra en el menu principal las empresas que tenemos en la BD
   socket.on("listar_negocios", async (callback) => {
     try {

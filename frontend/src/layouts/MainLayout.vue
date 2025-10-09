@@ -64,10 +64,12 @@
           <q-item-section>Historial de compras</q-item-section>
         </q-item>
 
-        <q-item clickable>
-          <q-item-section avatar><q-icon name="store" /></q-item-section>
-          <q-item-section>Registrar comercio</q-item-section>
-        </q-item>
+        <router-link to="/RegistroEmpresa" class="text-white">
+          <q-item clickable>
+            <q-item-section avatar><q-icon name="store" /></q-item-section>
+            <q-item-section>Registrar comercio</q-item-section>
+          </q-item>
+        </router-link>
 
         <q-item clickable>
           <q-item-section avatar><q-icon name="settings" /></q-item-section>

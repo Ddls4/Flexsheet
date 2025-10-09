@@ -1,16 +1,15 @@
 // /Sockets/negocio.js
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const negocioSchema = new mongoose.Schema({
-  ID_N: String,
   Nombre_N: String,
-  // falta imgen
+  url_i: String,
   // Datos para el filtro
-  Tipo_N: String,
   Departamento: String,
   Ciudad: String,
   // visibilidad: si está en edición, se oculta
-  visible: { type: Boolean, default: true }
+  usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
+  visible: { type: Boolean, default: true },
 });
 
 const Negocio = mongoose.model("Negocio", negocioSchema);
