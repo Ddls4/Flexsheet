@@ -20,6 +20,20 @@
                 Puedes ir a opciones para modificar a tu gusto la web. <br>
                 Al apretar en productos podras ver los productos que tenemos para ofrecerte y agregar al carrito
                 </q-label>
+
+
+
+
+                <div v-if="user" class=" bg-blue-grey-6">
+                      <h4 color="blue">Bienvenido, {{ user.nombre }}</h4>
+                      <p color="blue">Tu ID es: {{ user.id }}</p>
+                    </div>
+                    <div v-else>
+                      <q-banner type="warning" color="blue">No hay usuario logueado</q-banner>
+                </div>
+
+
+
                 
             </div>
       </div>
@@ -30,8 +44,21 @@
 </template>
 
 <script setup>
+  import { ref, onMounted } from 'vue';
 
-</script>
+  const user = ref(null);
+
+  onMounted(() => {
+    const data = localStorage.getItem('user');
+    if (data) {
+      try {
+        user.value = JSON.parse(data);
+      } catch (e) {
+        console.error('Error al leer localStorage:', e);
+      }
+    }
+  });
+  </script>
 
 <style>
 .border {
