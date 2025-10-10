@@ -1,46 +1,39 @@
 <template>
-  <q-page class=" flex  " >
+
+  <q-page class="flex flex-center bg-blue-grey-10 text-white q-pa-md" >
     <div class="column q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
 
-      <div class="col-6 bg-blue-grey-7">
-        <div class="text-center q-mb-md" style="color: white;">
-          <div style="padding: 10vh;">
-              <q-label class="text-h2 text-weight-bolder">AltaShop</q-label>
-          </div>
-            <div class="text-center q-mb-md white" style="margin: 30px;">   
-                <q-label class="text-body1 text-center" style="margin: 5px;">
-                    Somos un grupo de emprendedores que te invita a dar el salto al mundo digital, abriendo las puertas de tu negocio a nuevas oportunidades en internet.
-                </q-label>
-            </div>
+      <!-- Sección de bienvenida -->
+      <div class="col-6 col-md-5 bg-blue-grey-7 q-pa-lg q-rounded-borders shadow-2 ">
+        <div class="text-center q-mb-md">
+          <q-label class="text-h1 text-weight-bolder text-white">AltaShop</q-label>
+        </div>
+        <div class="text-body1 q-mx-lg text-justify" style="margin-top: 50px;" >   
+          Elegí el mejor lugar para lavar tu auto según tu tiempo y preferencias, todo desde un solo lugar.
         </div>
       </div>
-      <div class="col-6 bg-blue-grey-8">
-            <div class="text-center q-mb-md white" style="margin: 50px;">   
-                <q-label class="text-body1 text-center" style="margin: 10px;">Para empezar a usar la aplicación aprete en productos
-                Puedes ir a opciones para modificar a tu gusto la web. <br>
-                Al apretar en productos podras ver los productos que tenemos para ofrecerte y agregar al carrito
-                </q-label>
+      <!-- Sección de instrucciones -->
+      <div class="col-6 col-md-5 bg-blue-grey-8 q-pa-lg q-rounded-borders shadow-2">
+        <div class="text-body1 text-justify q-mb-md" style="margin: 50px;">   
+          Para comenzar, ingresá a la sección <strong>Productos</strong> para explorar nuestra tienda.  
+          Desde el menú de <strong>Opciones</strong> podés personalizar tu experiencia.  
+          Agregá los artículos que te gusten al carrito y descubrí una nueva forma de comprar.
+        </div>
+        <!-- Información del usuario -->
+        <div v-if="user" class="bg-blue-grey-6 q-pa-md q-mt-md q-rounded-borders shadow-1 text-center">
+          <h5 class="text-white text-weight-bold q-mb-xs">Bienvenido, {{ user.nombre }}</h5>
+          <p class="text-caption text-grey-3">Tu ID es: {{ user.id }}</p>
+        </div>
 
-
-
-
-                <div v-if="user" class=" bg-blue-grey-6">
-                      <h4 color="blue">Bienvenido, {{ user.nombre }}</h4>
-                      <p color="blue">Tu ID es: {{ user.id }}</p>
-                    </div>
-                    <div v-else>
-                      <q-banner type="warning" color="blue">No hay usuario logueado</q-banner>
-                </div>
-
-
-
-                
-            </div>
+        <q-banner v-else type="warning" color="amber-7" class="q-mt-md text-center text-dark">
+          No hay usuario logueado
+        </q-banner> 
       </div>
 
     </div>
 
   </q-page>
+
 </template>
 
 <script setup>

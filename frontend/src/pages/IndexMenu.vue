@@ -2,51 +2,48 @@
   <q-page class=" flex  " >
     <!--  -->
     <div class="row q-pa-md bg-blue-grey-10 text-white fit ">
-        <div class="col-3 col-md-3 col-lg-3 col-xl-2 col-12 bg-blue-grey-9 q-mb-md q-order-1 q-order-sm-0 bg-blue-grey-9">
+      <!-- Filtros -->
+      <div class="col-3 col-md-3 col-lg-3 col-xl-2 col-12 bg-blue-grey-9 q-mb-md q-order-1 q-order-sm-0">
           <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
             <label>Filtro</label>
           </div>
-
           <div class="q-pa-md q-gutter-md">
-            <!-- Selección de fecha con single-range -->
-            <q-date 
-              v-model="selectedDateRange" 
-              @update:model-value="updateDisplayText" 
+            <!-- Fecha -->
+            <q-date
+              v-model="filters.dateRange"
               mask="YYYY-MM-DD"
               color="blue-5"
-              dark=""
+              dark
               range
+              class="q-mb-md"
             />
 
-            <!-- Selección de hora -->
-            <q-time 
-              v-model="selectedTime" 
-              @update:model-value="updateDisplayText" 
+            <!-- Hora -->
+            <q-time
+              v-model="filters.time"
               format24h
               color="blue-5"
-              dark=""
+              dark
+              class="q-mb-md"
             />
 
-            <!-- Texto que muestra la fecha y hora -->
-            <div class="q-mt-md text-h6">
-              Fecha y hora seleccionadas: {{ displayText }}
-            </div>
+            <!-- Mostrar fecha seleccionada -->
+            <div class="q-mb-lg text-subtitle2">{{ displayText }}</div>
           </div>
 
-          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Nombre" />
-          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Departamento" />
-          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Ciudad" />
-          <q-select standout="bg-light-blue-5 text-white" v-model="model" :options="options" label="Precio" />
+          <q-input standout="bg-light-blue-5 text-white" filled v-model="filters.nombre" label="Buscar Nombre" class="q-mb-md" />
+          <q-select standout="bg-light-blue-5 text-white" filled v-model="departamento" :options="departamentos" label="Departamento" class="q-mb-md"/>
+          <q-select standout="bg-light-blue-5 text-white" filled v-model="ciudad" :options="ciudades" label="Ciudad" class="q-mb-md"/>
+          <q-select standout="bg-light-blue-5 text-white" filled v-model="precio" :options="precios" label="Precio" class="q-mb-md" />
 
+      </div>
 
-        </div>
-
-      <div class="col-9" style="background-color: #455a64;" >
-        <!-- Card /tabla -->
+      <!-- Cargar Negocios -->
+      <div class="col-9 bg-blue-grey-8 " >
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
-            @click="cardClicked(index)">
+            <q-card style="max-width: 200px;" class="cursor-pointer"
+            @click="cardClicked(card)">
               
               <q-card-section style="padding: 0;">
                 <q-img 
@@ -54,7 +51,7 @@
                   :src="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
                   style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
                 >
-                <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
+                <div class="absolute-bottom text-subtitle2 text-center">{{ card.Nombre_N}}</div>
                 
                 </q-img>
               </q-card-section>
@@ -63,152 +60,151 @@
           </div>
         </div>
       </div>
+
     </div>
 
-  <q-dialog v-model="Testcard" persistent>
-    <q-card style="min-width: 80vw; max-width: 90vw;">
-      <q-card-section class="row">
-        <!-- Lado izquierdo: Productos con checkboxes -->
-        <div class="col-6 q-pa-md" style="border-right: 1px solid #ccc;">
-          <div v-for="(product, index) in selectedCard?.products || []" :key="index" class="q-mb-md row items-center">
-            <q-checkbox
-              :model-value="isInCart(product)"
-              @update:model-value="val => toggleProductSelection(product, val)"
-              class="q-mr-sm"
-            />
-            <q-img
-              :src="product.imagenURL"
-              alt="Imagen del producto"
-              style="width: 80px; height: 80px; object-fit: cover;"
-              class="q-mr-md"
-            />
-            <div>
-              <div class="text-subtitle2">{{ product.title }}</div>
-              <div class="text-caption">Precio: ${{ product.price }}</div>
-            </div>
+<q-dialog v-model="showDialog" persistent>
+  <q-card style="min-width: 80vw; max-width: 90vw;">
+    <q-card-section class="row">
+
+      <!-- Lado izquierdo: Servicios con checkboxes -->
+      <div class="col-6 q-pa-md" style="border-right: 1px solid #ccc;">
+        <div
+          v-for="(servicio, index) in selectedCard?.servicios || []"
+          :key="index"
+          class="q-mb-md row items-center"
+        >
+          <q-checkbox
+            :model-value="isInCart(servicio)"
+            @update:model-value="val => toggleProductSelection(servicio, val)"
+            class="q-mr-sm"
+          />
+          <q-img
+            :src="servicio.imagenURL || 'https://via.placeholder.com/80'"
+            alt="Imagen del servicio"
+            style="width: 80px; height: 80px; object-fit: cover;"
+            class="q-mr-md"
+          />
+          <div>
+            <div class="text-subtitle2">{{ servicio.titulo }}</div>
+            <div class="text-caption">Precio: ${{ servicio.precio }}</div>
+            <div class="text-caption text-grey">{{ servicio.descripcion }}</div>
           </div>
         </div>
+      </div>
 
-        <!-- Lado derecho: Descripción del combo -->
-        <div class="col-6 q-pa-md">
-          <h5 class="q-mb-sm">{{ selectedCard?.title }}</h5>
-          <p>{{ selectedCard?.description }}</p>
-        </div>
-      </q-card-section>
+      <!-- Lado derecho: Información del negocio -->
+      <div class="col-6 q-pa-md">
+        <h5 class="q-mb-sm">{{ selectedCard?.Nombre_N }}</h5>
+        <q-img
+          :src="selectedCard?.url_i || 'https://via.placeholder.com/300x200'"
+          alt="Imagen del negocio"
+          style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;"
+          class="q-mb-md"
+        />
+        <p class="q-mb-none"><b>Departamento:</b> {{ selectedCard?.Departamento }}</p>
+        <p><b>Ciudad:</b> {{ selectedCard?.Ciudad }}</p>
+      </div>
 
-      <q-card-actions align="right">
-        <q-btn flat label="Cerrar" color="primary" v-close-popup />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cerrar" color="primary" v-close-popup />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
 
   </q-page>
 
 </template>
 
+
 <script setup>
-  import { ref, onMounted, reactive, computed, provide, inject   } from 'vue';
+import { ref, computed, inject, onMounted } from 'vue'
+import { io } from 'socket.io-client'
+import { useQuasar } from 'quasar'
 
-  import { useRouter } from 'vue-router'
-  import { io } from "socket.io-client";
+const $q = useQuasar()
+const socket = io(`http://${import.meta.env.VITE_P_IP}:80`) // Cambiar según tu backend
 
-  const router = useRouter()
-  
-  const selectedCard = ref(null);
-  const Testcard = ref(false);
+// === Carrito compartido ===
+const shoppingCart = inject('shoppingCart')
+if (!shoppingCart) throw new Error('❌ No se encontró el carrito (shoppingCart)')
 
-  const selectedProducts = ref(new Set());
-  
-  
+// === Estados ===
+const cards = ref([])                // Negocios disponibles
+const selectedCard = ref(null)       // Card seleccionada
+const showDialog = ref(false)        // Control q-dialog
 
-  const cards = ref([
-    {
-      id: 1,
-      title: 'PoloLavadera',
-      imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
-      description: 'Este combo incluye productos frescos y de calidad para el hogar.',
-      products: [
-        { title: 'Producto 1', price: 10, imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' },
-        { title: 'Producto 2', price: 20, imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' },
-        { title: 'Producto 3', price: 30, imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' },
-      ]
-    },
-    {
-      id: 2,
-      title: 'Apolopintadero',
-      imagenURL: 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
-      description: 'Ideal para el almuerzo familiar, incluye ingredientes frescos.',
-      products: [
-        { title: 'Producto A', price: 15, imagenURL: 'https://via.placeholder.com/100' },
-        { title: 'Producto B', price: 25, imagenURL: 'https://via.placeholder.com/100' },
-        { title: 'Producto C', price: 35, imagenURL: 'https://via.placeholder.com/100' },
-      ]
-    }
-  ]); // Ejemplo de lo que trae la BD
+// === Filtros ===
+const filters = ref({
+  dateRange: { from: '', to: '' },
+  time: '',
+  nombre: '',
+  departamento: '',
+  ciudad: '',
+  precio: ''
+})
 
-  const selectedCardIndex = ref(null);
-  const selectionMode = ref(false);
+const displayText = computed(() => {
+  const { from, to } = filters.value.dateRange
+  const time = filters.value.time
+  if (from && to && time) return `Desde ${from} hasta ${to} a las ${time}`
+  if (from && to) return `Desde ${from} hasta ${to} (sin hora)`
+  if (from) return `Fecha seleccionada: ${from}`
+  if (time) return `Hora seleccionada: ${time}`
+  return 'Ninguna fecha u hora seleccionada'
+})
 
-  const cardClicked = (index) => {
-    selectedCard.value = cards.value[index];
-    Testcard.value = true;
-  };
+// Opciones para selects
+const departamento = ref(null)
+const ciudad = ref(null)
+const precio = ref(null)
+const departamentos = ref(['Montevideo', 'Canelones', 'Maldonado'])
+const ciudades = ref(['Ciudad Vieja', 'Pando', 'Punta del Este'])
+const precios = ref(['< $1000', '$1000 - $5000', '> $5000'])
 
-  
+// === Funciones ===
 
-  function toggleProductSelection(product, isSelected) {
-    if (isSelected) {
-      // Solo si no está ya agregado
-      if (!shoppingCart.value.some(p => p.title === product.title)) {
-        shoppingCart.value.push(product)
-      }
-    } else {
-      // Quitar producto si se deselecciona
-      const index = shoppingCart.value.findIndex(p => p.title === product.title)
-      if (index !== -1) {
-        shoppingCart.value.splice(index, 1)
-      }
-    }
-  }
+// Cargar todos los negocios
 
-  // const shoppingCart = computed(() => Array.from(selectedProducts.value));
-
-  const shoppingCart = inject('shoppingCart')
-  if (!shoppingCart) {
-    throw new Error('No se encontró el carrito (shoppingCart)')
-  }
-  function isInCart(product) {
-    return shoppingCart.value.some(p => p.title === product.title)
-  }
+const cargarNegocios = () => {
+  socket.emit("listar_negocios", null, (data) => {
+    if (data.negocios) {
+      cards.value = data.negocios
+      console.log("Negocios cargados:", data.negocios)
+    }else $q.notify({ type: "negative", message: data.error || "Error al obtener negocios" })
+  })
+}
 
 
-  onMounted(() => {
+// Manejar click en un negocio
+const cardClicked = (card) => {
+  selectedCard.value = card
+  showDialog.value = true
+}
 
-  });
+// Verificar si un producto ya está en el carrito
+const isInCart = (product) =>
+  shoppingCart.value.some((p) => p.titulo === product.titulo)
 
-
-const selectedDateRange = ref({ from: '', to: '' })
-const selectedTime = ref('')
-const displayText = ref('Ninguna fecha u hora seleccionada')
-
-// Función que actualiza el texto
-function updateDisplayText() {
-  const from = selectedDateRange.value.from
-  const from2 = selectedDateRange.value.to
-  const time = selectedTime.value
-
-  if (from && time) {
-    displayText.value = `Seleccionaste: ${from} asta ${from2} a las ${time}`
-  } else if (from) {
-    displayText.value = `Fecha seleccionada: ${from} asta ${from2} (hora no seleccionada)`
-  } else if (time) {
-    displayText.value = `Hora seleccionada: ${time} (fecha no seleccionada)`
+// Agregar o quitar del carrito
+const toggleProductSelection = (product, selected) => {
+  if (selected) {
+    if (!isInCart(product)) shoppingCart.value.push(product)
   } else {
-    displayText.value = 'Ninguna fecha u hora seleccionada'
+    const i = shoppingCart.value.findIndex((p) => p.titulo === product.titulo)
+    if (i !== -1) shoppingCart.value.splice(i, 1)
   }
 }
-  
+
+// === Lifecycle ===
+onMounted(() => {
+  cargarNegocios()
+})
 </script>
+
+
 
 <style>
 .border {

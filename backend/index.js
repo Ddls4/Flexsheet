@@ -72,8 +72,6 @@ io.on("connect", (socket) => {
     console.log("Intentando login:", username);
     try {
       const user = await Usuario.findOne({ Nombre_U: username });
-      console.log("Usuario encontrado:", user);
-
       if (!user) {
         return callback({ success: false, message: "Usuario o contraseña incorrectos" });
       }
@@ -135,15 +133,21 @@ io.on("connect", (socket) => {
     }
   });
   // Muestra en el menu principal las empresas que tenemos en la BD
-  socket.on("listar_negocios", async (callback) => {
+  socket.on("listar_negocios", async (data, callback) => {
     try {
-      const negocios = await negocio.find();
-      callback({ success: true, negocios });
-    } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al obtener negocios" });
+      const negocios = await Negocio.find()
+      if (callback) {
+        callback({ negocios })
+      }
+    } catch (err) {
+      console.error("Error al listar negocios:", err)
+      if (callback) {
+        callback({ error: "Error interno del servidor" })
+      }
     }
-  });
+  })
+
+
 
   // -------------------
   // Card = Negocio / Servicio
