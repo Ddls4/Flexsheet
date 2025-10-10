@@ -130,7 +130,64 @@
     </q-dialog>
 
 
+
+
+
+
   </q-page>
+  <q-drawer
+    v-model="showDrawer"
+    side="right"
+    bordered
+    width="400px"
+    behavior="mobile"
+    overlay
+  >
+    <q-toolbar>
+      <q-toolbar-title>Servicios de {{ negocioSeleccionado?.title }}</q-toolbar-title>
+      <q-btn flat icon="close" @click="showDrawer = false" />
+    </q-toolbar>
+
+    <q-card-section>
+      <div v-for="(servicio, i) in servicios" :key="i" class="q-mb-sm">
+        <q-card>
+          <q-card-section>
+            <div class="text-subtitle2">{{ servicio.titulo }}</div>
+            <div>{{ servicio.descripcion }}</div>
+            <div class="text-bold">${{ servicio.precio }}</div>
+          </q-card-section>
+          <q-card-actions align="right">
+            
+            <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
+            <q-btn color="negative" icon="delete" flat @click="eliminarServicio(i)" />
+          </q-card-actions>
+        </q-card>
+      </div>
+      <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
+    </q-card-section>
+
+    <q-dialog v-model="showServicioDialog" persistent>
+      <q-card style="min-width: 400px;">
+        <q-card-section>
+          <div class="text-h6">{{ modoEdicion ? 'Editar Servicio' : 'Agregar Servicio' }}</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input v-model="formServicio.titulo" label="Título" dense autofocus />
+          <q-input v-model="formServicio.descripcion" label="Descripción" dense />
+          <q-input v-model="formServicio.precio" label="Precio" type="number" dense />
+          <q-input v-model="formServicio.imagenURL" label="URL de Imagen" dense />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="primary" v-close-popup />
+          <q-btn flat :label="modoEdicion ? 'Guardar' : 'Agregar'" color="positive" @click="guardarServicio" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+
+  </q-drawer>
 
 </template>
 
@@ -147,16 +204,24 @@
   const newCard = ref({title: '',imagenURL: ''});
   const selectedCardIndex = ref(null);
   const selectionMode = ref(false);
+
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+    auth: {
+      userId: storedUser.id
+    },
     withCredentials: true,
     autoConnect: false
   });
 
+  const showDrawer = ref(false)
+  const negocioSeleccionado = ref(null)
+  const servicios = ref([])
 
   const fetchUserCards = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
     
-
+    
+    
     // Usar Promise para manejar la respuesta
     new Promise((resolve, reject) => {
       socket.emit("solicitar_cards", (response) => {
@@ -180,35 +245,6 @@
       console.error("Error al obtener cards:", error);
     });
   };
-
-  /*
-  const handleSubmit = () => {
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-
-    const cardData = {
-      title: newCard.value.title,
-      date: formattedDate,
-      imagenURL: newCard.value.imagenURL
-    };
-
-    // Emitimos el evento al servidor
-    socket.emit("create_card", cardData, (response) => {
-      if (response.success) {
-        // Si fue exitoso, agregamos la card localmente
-        cards.value.push({
-          id: response.cardId,
-          title: cardData.title,
-          imagenURL: cardData.imagenURL
-        });
-        CerrarDialogCreate();
-      } else {
-        console.error('Error al guardar la card:', response.message);
-        // Aquí puedes mostrar un mensaje al usuario si quieres
-      }
-    });
-  };
-*/
   function agregarProducto() {
     if (!form.value.nombre || !form.value.imagen || !form.value.precio) {
       alert('Completa los campos obligatorios');
@@ -226,24 +262,9 @@
     };
     dialog.value = false;
   }
-
   const toggleSelectionMode = () => {
       selectionMode.value = !selectionMode.value;
       selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
-  };
-  const cardClicked = (index) => {
-      if (selectionMode.value) {
-        // modo selección: seleccionar/deseleccionar card
-        if (selectedCardIndex.value === index) {
-          selectedCardIndex.value = null;
-        } else {
-          selectedCardIndex.value = index;
-        }
-      } else {
-        // modo normal: redirigir a /tabla pasando la card o su nombre
-        const card = cards.value[index];
-        router.push({ path: '/tabla', query: { name: card.title, id: card.id } });
-      }
   };
   const confirmarEliminar = () => {
       eliminarCard();
@@ -274,6 +295,88 @@
       router.push('/login');
     }
   });
+
+  const cardClicked = (index) => {
+    const card = cards.value[index]
+    negocioSeleccionado.value = card
+    showDrawer.value = true
+
+    // Aquí podrías hacer un emit al backend para obtener los servicios del negocio
+    socket.emit("obtener_servicios", { negocioId: card.id }, (response) => {
+      if (response.success) {
+        servicios.value = response.servicios
+      } else {
+        console.error(response.message)
+      }
+    })
+  }
+  // Agregar Servicio 
+
+  const showServicioDialog = ref(false)
+  const modoEdicion = ref(false)
+  const formServicio = ref({
+    titulo: '',
+    descripcion: '',
+    precio: '',
+    imagenURL: ''
+  })
+  let servicioEditIndex = null
+
+  const abrirFormularioAgregarServicio = () => {
+    modoEdicion.value = false
+    formServicio.value = {
+      titulo: '',
+      descripcion: '',
+      precio: '',
+      imagenURL: ''
+    }
+    showServicioDialog.value = true
+  }
+
+  const editarServicio = (index) => {
+    modoEdicion.value = true
+    servicioEditIndex = index
+    formServicio.value = { ...servicios.value[index] }
+    showServicioDialog.value = true
+  }
+
+  const guardarServicio = () => {
+    if (!formServicio.value.titulo || !formServicio.value.precio) {
+      alert('Título y precio son obligatorios')
+      return
+    }
+
+    if (modoEdicion.value) {
+      // Actualizar servicio existente
+      servicios.value[servicioEditIndex] = { ...formServicio.value }
+
+      socket.emit('actualizar_servicio', {
+        negocioId: negocioSeleccionado.value.id,
+        servicio: servicios.value[servicioEditIndex]
+      }, (res) => {
+        if (!res.success) {
+          alert('Error al actualizar el servicio')
+        }
+      })
+
+    } else {
+      // Agregar nuevo servicio
+      const nuevoServicio = { ...formServicio.value }
+
+      socket.emit('agregar_servicio', {
+        negocioId: negocioSeleccionado.value.id,
+        servicio: nuevoServicio
+      }, (res) => {
+        if (res.success) {
+          servicios.value.push(nuevoServicio)
+        } else {
+          alert('Error al agregar servicio')
+        }
+      })
+    }
+
+    showServicioDialog.value = false
+  }
 </script>
 
 <style>

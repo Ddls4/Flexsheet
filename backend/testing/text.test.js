@@ -28,7 +28,7 @@ test("Testing del DOTENV: P_IP", () => {
 
 describe("Testing conexión con MongoDB usando Mongoose", () => {
     beforeAll(async () => {
-        await mongoose.connect("mongodb://127.0.0.1:27017/ddfjg", {
+        await mongoose.connect("mongodb+srv://DDFJG:culo123@cluster0.lwg6hol.mongodb.net/ddfjg?retryWrites=true&w=majority&appName=Cluster0", {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });

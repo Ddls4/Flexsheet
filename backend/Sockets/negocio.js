@@ -10,6 +10,15 @@ const negocioSchema = new mongoose.Schema({
   // visibilidad: si está en edición, se oculta
   usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
   visible: { type: Boolean, default: true },
+  servicios: [
+    {
+      titulo: String,
+      descripcion: String,
+      precio: Number,
+      imagenURL: String
+    }
+  ]
+
 });
 
 const Negocio = mongoose.model("Negocio", negocioSchema);

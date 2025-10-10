@@ -146,7 +146,6 @@ io.on("connect", (socket) => {
       });
     }
   });
-
   // Muestra en el menu principal las empresas que tenemos en la BD
   socket.on("listar_negocios", async (callback) => {
     try {
@@ -173,13 +172,27 @@ io.on("connect", (socket) => {
     }
   });
   // Mostrar card en menu de empresa
-  socket.on("listar_cards", async (callback) => {
+  socket.on("solicitar_cards", async (callback) => {
     try {
-      const cards = await card.find();
-      callback({ success: true, cards });
-    } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al obtener cards" });
+      const userId = socket.handshake.auth?.userId || null;
+
+      if (!userId) {
+        return callback({ error: "No autorizado" });
+      }
+
+      const negocios = await Negocio.find({ usuario: userId });
+      console.log(negocios)
+      callback({  
+        cards: negocios.map(n => ({
+          id: n._id,
+          title: n.Nombre_N,
+          imagenURL: n.url_i
+        }))
+      });
+
+    } catch (err) {
+      console.error("Error al obtener negocios:", err);
+      callback({ error: "Error interno del servidor" });
     }
   });
   // Eliminar card en menu de empresa
@@ -192,6 +205,19 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al eliminar card" });
     }
   });
+
+  socket.on("obtener_servicios", async ({ negocioId }, callback) => {
+    try {
+      const negocio = await Negocio.findById(negocioId)
+      if (!negocio) return callback({ success: false, message: "Negocio no encontrado" })
+
+      callback({ success: true, servicios: negocio.servicios || [] })
+    } catch (err) {
+      console.error(err)
+      callback({ success: false, message: "Error al obtener servicios" })
+    }
+  })
+
   // Editar card en menu de empresa
   // boolean que cambie la visibilidad del negocio mientras lo estan modificando 
 
@@ -211,6 +237,39 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al cargar tabla" });
     }
   });
+
+  socket.on("agregar_servicio", async (data, callback) => {
+  try {
+    const { negocioId, servicio } = data;
+
+    if (!negocioId || !servicio || !servicio.titulo || !servicio.precio) {
+      return callback({ success: false, message: "Datos incompletos" });
+    }
+
+    // Buscar el negocio
+    const negocio = await Negocio.findById(negocioId);
+    if (!negocio) {
+      return callback({ success: false, message: "Negocio no encontrado" });
+    }
+
+    // Inicializar el array si no existe
+    if (!Array.isArray(negocio.servicios)) {
+      negocio.servicios = [];
+    }
+
+    // Agregar el servicio
+    negocio.servicios.push(servicio);
+
+    // Guardar los cambios
+    await negocio.save();
+
+    callback({ success: true, servicios: negocio.servicios });
+  } catch (err) {
+    console.error("Error al agregar servicio:", err);
+    callback({ success: false, message: "Error del servidor" });
+  }
+});
+
 });
 
 // Historial de servicios del usuario
