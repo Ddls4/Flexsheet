@@ -10,7 +10,7 @@ PORT = 80
 PORT_W = 900
 P_IP = "" // tu IP
 
-// mongodb+srv://DDFJG:culo123@cluster0.lwg6hol.mongodb.net/ddfjg?retryWrites=true&w=majority&appName=Cluster0
+// mongodb+srv://DDFJG:*****@cluster0.lwg6hol.mongodb.net/ddfjg?retryWrites=true&w=majority&appName=Cluster0
 // mongodb://127.0.0.1:27017/ddfjg
 MONGODB_URI = ""
 
