@@ -12,9 +12,7 @@ import { initDB } from './initDB.js';
 // Conexión a MongoDB
 // -------------------
   initDB();
-
-// -----------------
-// --
+// -------------------
 // Rutas HTTP básicas
 // -------------------
 servidor.get("/", (req, res) => {
@@ -34,12 +32,8 @@ io.on("connect", (socket) => {
   // -------------------
   // Usuario
   // -------------------
-
-
   socket.on("registrar", async (data, callback) => {
     try {
-      console.log("Datos recibidos:", data);
-
       // Verificar si ya existe el usuario
       const usuarioExistente = await Usuario.findOne({ Nombre_U: data.username });
       if (usuarioExistente) {
@@ -48,16 +42,13 @@ io.on("connect", (socket) => {
           message: "El nombre de usuario ya está en uso"
         });
       }
-
       // Hashear contraseña
       const hashedPassword = await bcrypt.hash(data.password, 10);
-
       // Crear usuario nuevo
       const nuevoUsuario = await Usuario.create({
         Nombre_U: data.username,
         Contraseña: hashedPassword
       });
-
       console.log("Usuario registrado:", nuevoUsuario.Nombre_U);
 
       callback({
@@ -79,7 +70,6 @@ io.on("connect", (socket) => {
   });
   socket.on("login", async ({ username, password }, callback) => {
     console.log("Intentando login:", username);
-
     try {
       const user = await Usuario.findOne({ Nombre_U: username });
       console.log("Usuario encontrado:", user);
@@ -90,7 +80,6 @@ io.on("connect", (socket) => {
 
       // Comparar contraseña ingresada con la contraseña hasheada en la base de datos
       const isMatch = await bcrypt.compare(password, user.Contraseña);
-
       if (!isMatch) {
         return callback({ success: false, message: "Usuario o contraseña incorrectos" });
       }
@@ -103,7 +92,6 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error en login" });
     }
   });
-
 
   // -------------------
   // Negocio
@@ -158,9 +146,10 @@ io.on("connect", (socket) => {
   });
 
   // -------------------
-  // Card - Menu de empresa en el frontend
+  // Card = Negocio / Servicio
+  // * Menu de empresa en el frontend * 
   // -------------------
-  // Crear card en menu de empresa
+  // Crear Negocio
   socket.on("crear_card", async ({ nombre, fecha, imagenURL }, callback) => {
     try {
       const nuevaCard = new card({ Nombre_S: nombre, fecha, Imagen: imagenURL });
@@ -171,7 +160,7 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al crear card" });
     }
   });
-  // Mostrar card en menu de empresa
+  // Lista los Negocios
   socket.on("solicitar_cards", async (callback) => {
     try {
       const userId = socket.handshake.auth?.userId || null;
@@ -195,17 +184,33 @@ io.on("connect", (socket) => {
       callback({ error: "Error interno del servidor" });
     }
   });
-  // Eliminar card en menu de empresa
-  socket.on("eliminar_card", async ({ id }, callback) => {
+  // Eliminar los Negocios
+  socket.on("eliminar_negocio", async (data, callback) => {
     try {
-      await card.findByIdAndDelete(id);
-      callback({ success: true });
-    } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al eliminar card" });
+      const { negocioId } = data;
+      console.log("Datos recibidos para eliminar negocio:", data);
+
+      if (!negocioId) {
+        return callback({ success: false, message: "ID del negocio no proporcionado" });
+      }
+
+      // Intentar eliminar el negocio
+      const resultado = await Negocio.findByIdAndDelete(negocioId);
+
+      if (!resultado) {
+        return callback({ success: false, message: "Negocio no encontrado" });
+      }
+
+      callback({ success: true, message: "Negocio eliminado con éxito" });
+    } catch (err) {
+      console.error("Error al eliminar negocio:", err);
+      callback({ success: false, message: "Error del servidor" });
     }
   });
+  // Editar los Negocios
+  // -------------------  
 
+  // Obtener servicios de un negocio
   socket.on("obtener_servicios", async ({ negocioId }, callback) => {
     try {
       const negocio = await Negocio.findById(negocioId)
@@ -217,16 +222,122 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al obtener servicios" })
     }
   })
+  // Agregar servicio a un negocio
+  socket.on("agregar_servicio", async (data, callback) => {
+    try {
+      const { negocioId, servicio } = data;
 
-  // Editar card en menu de empresa
-  // boolean que cambie la visibilidad del negocio mientras lo estan modificando 
+      if (!negocioId || !servicio || !servicio.titulo || !servicio.precio) {
+        return callback({ success: false, message: "Datos incompletos" });
+      }
+      // Buscar el negocio
+      const negocio = await Negocio.findById(negocioId);
+      if (!negocio) {
+        return callback({ success: false, message: "Negocio no encontrado" });
+      }
+      // Inicializar el array si no existe
+      if (!Array.isArray(negocio.servicios)) {
+        negocio.servicios = [];
+      }
+      // Agregar el servicio
+      negocio.servicios.push(servicio);
+      // Guardar los cambios
+      await negocio.save();
+
+      callback({ success: true, servicios: negocio.servicios });
+    } catch (err) {
+      console.error("Error al agregar servicio:", err);
+      callback({ success: false, message: "Error del servidor" });
+    }
+  });
+  // Eliminar servicio de un negocio
+  socket.on("eliminar_servicio", async (data, callback) => {
+    try {
+      const { negocioId, servicioId } = data;
+      console.log("Datos recibidos para eliminar servicio:", data);
+
+      if (!negocioId || !servicioId) {
+        return callback({ success: false, message: "Datos incompletos" });
+      }
+
+      // Buscar el negocio
+      const negocio = await Negocio.findById(negocioId);
+      if (!negocio) {
+        return callback({ success: false, message: "Negocio no encontrado" });
+      }
+
+      // Filtrar el servicio fuera del array
+      const serviciosActualizados = negocio.servicios.filter(
+        (s) => s._id.toString() !== servicioId.toString()
+      );
+
+      // Verificar si se eliminó algo
+      if (serviciosActualizados.length === negocio.servicios.length) {
+        return callback({ success: false, message: "Servicio no encontrado" });
+      }
+
+      negocio.servicios = serviciosActualizados;
+      await negocio.save();
+
+      callback({ success: true, servicios: negocio.servicios });
+    } catch (err) {
+      console.error("Error al eliminar servicio:", err);
+      callback({ success: false, message: "Error del servidor" });
+    }
+  });
+  // Editar servicio de un negocio
+  socket.on("editar_servicio", async (data, callback) => {
+    try {
+      const { negocioId, servicio } = data;
+
+      if (!negocioId || !servicio || !servicio._id) {
+        return callback({ success: false, message: "Datos incompletos" });
+      }
+
+      // Buscar el negocio
+      const negocio = await Negocio.findById(negocioId);
+      if (!negocio) {
+        return callback({ success: false, message: "Negocio no encontrado" });
+      }
+
+      // Buscar el servicio dentro del negocio
+      const servicioIndex = negocio.servicios.findIndex(
+        (s) => s._id.toString() === servicio._id.toString()
+      );
+
+      if (servicioIndex === -1) {
+        return callback({ success: false, message: "Servicio no encontrado" });
+      }
+
+      // Actualizar los campos del servicio
+      negocio.servicios[servicioIndex] = {
+        ...negocio.servicios[servicioIndex]._doc,
+        ...servicio,
+      };
+
+      // Guardar los cambios
+      await negocio.save();
+
+      callback({ success: true, servicios: negocio.servicios });
+    } catch (err) {
+      console.error("Error al editar servicio:", err);
+      callback({ success: false, message: "Error del servidor" });
+    }
+  });
+
+  // boolean que cambie la visibilidad del negocio
+  // -------------------
+});
+
+ 
+  
 
 
   // -------------------
   // Tabla de usuario del negocio / historial de servicios del usuario
   // -------------------
   
-
+/*
   socket.on("cargar_tabla", async ({ cardid }, callback) => {
     try {
       const tablaEncontrada = await tabla.findOne({ cardid });
@@ -237,40 +348,8 @@ io.on("connect", (socket) => {
       callback({ success: false, message: "Error al cargar tabla" });
     }
   });
+*/
 
-  socket.on("agregar_servicio", async (data, callback) => {
-  try {
-    const { negocioId, servicio } = data;
-
-    if (!negocioId || !servicio || !servicio.titulo || !servicio.precio) {
-      return callback({ success: false, message: "Datos incompletos" });
-    }
-
-    // Buscar el negocio
-    const negocio = await Negocio.findById(negocioId);
-    if (!negocio) {
-      return callback({ success: false, message: "Negocio no encontrado" });
-    }
-
-    // Inicializar el array si no existe
-    if (!Array.isArray(negocio.servicios)) {
-      negocio.servicios = [];
-    }
-
-    // Agregar el servicio
-    negocio.servicios.push(servicio);
-
-    // Guardar los cambios
-    await negocio.save();
-
-    callback({ success: true, servicios: negocio.servicios });
-  } catch (err) {
-    console.error("Error al agregar servicio:", err);
-    callback({ success: false, message: "Error del servidor" });
-  }
-});
-
-});
 
 // Historial de servicios del usuario
 

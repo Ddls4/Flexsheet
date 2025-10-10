@@ -11,7 +11,7 @@ export async function initDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("MongoDB conectado");
-
+    /*
     // Verificar si ya existen datos
     const usuarioExiste = await Usuario.findOne({ ID_U: "1" });
     const negocioExiste = await Negocio.findOne({ ID_N: "1" });
@@ -51,7 +51,7 @@ export async function initDB() {
       await card.save();
       console.log("Card insertada");
     }
-
+    */
     console.log("Datos iniciales verificados/insertados con éxito");
   } catch (error) {
     console.error("Error insertando datos:", error);

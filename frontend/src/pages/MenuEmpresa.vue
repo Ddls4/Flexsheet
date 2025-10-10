@@ -129,12 +129,9 @@
       </q-card>
     </q-dialog>
 
-
-
-
-
-
   </q-page>
+
+  <!-- Drawer de Servicios -->
   <q-drawer
     v-model="showDrawer"
     side="right"
@@ -159,7 +156,7 @@
           <q-card-actions align="right">
             
             <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
-            <q-btn color="negative" icon="delete" flat @click="eliminarServicio(i)" />
+            <q-btn color="negative" icon="delete" flat @click="eliminarServicio(servicio._id)" />
           </q-card-actions>
         </q-card>
       </div>
@@ -219,9 +216,6 @@
   const servicios = ref([])
 
   const fetchUserCards = async () => {
-    
-    
-    
     // Usar Promise para manejar la respuesta
     new Promise((resolve, reject) => {
       socket.emit("solicitar_cards", (response) => {
@@ -267,25 +261,27 @@
       selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
   };
   const confirmarEliminar = () => {
-      eliminarCard();
+      eliminarNegocioSeleccionado();
       showConfirmDialog.value = false;
   };
-  const eliminarCard = async () => {
-      if (selectedCardIndex.value !== null) {
-    const card = cards.value[selectedCardIndex.value];
-    try {
-      await axios.post(`http://${import.meta.env.VITE_P_IP}:80/cardEliminar`, {
-        id: card.id // suponiendo que `card` tiene una propiedad `id`
-      });
+  const eliminarNegocioSeleccionado = () => {
+    if (selectedCardIndex.value === null) return alert("Selecciona un negocio primero");
 
-      cards.value.splice(selectedCardIndex.value, 1);
-      selectedCardIndex.value = null;
-    } catch (error) {
-      console.error('Error al eliminar la card:', error);
-    }
-  }
+    const negocio = cards.value[selectedCardIndex.value];
+
+    if (!confirm(`¿Seguro que quieres eliminar el negocio "${negocio.Nombre_N}"?`)) return;
+
+    socket.emit("eliminar_negocio", { negocioId: negocio.id }, (res) => {
+      if (res.success) {
+        cards.value.splice(selectedCardIndex.value, 1);
+        selectedCardIndex.value = null;
+        alert("Negocio eliminado con éxito");
+      } else {
+        alert(res.message || "Error al eliminar negocio");
+      }
+    });
   };
-    
+      
   onMounted(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -297,6 +293,12 @@
   });
 
   const cardClicked = (index) => {
+    // Si está en modo selección, no abrir el drawer
+    if (selectionMode.value) {
+      // Alternar selección (por si querés poder seleccionar varias o una sola)
+      selectedCardIndex.value = selectedCardIndex.value === index ? null : index
+      return // detener la ejecución aquí
+    }
     const card = cards.value[index]
     negocioSeleccionado.value = card
     showDrawer.value = true
@@ -310,8 +312,8 @@
       }
     })
   }
-  // Agregar Servicio 
 
+  // Agregar Servicio 
   const showServicioDialog = ref(false)
   const modoEdicion = ref(false)
   const formServicio = ref({
@@ -350,7 +352,7 @@
       // Actualizar servicio existente
       servicios.value[servicioEditIndex] = { ...formServicio.value }
 
-      socket.emit('actualizar_servicio', {
+      socket.emit('editar_servicio', {
         negocioId: negocioSeleccionado.value.id,
         servicio: servicios.value[servicioEditIndex]
       }, (res) => {
@@ -377,6 +379,25 @@
 
     showServicioDialog.value = false
   }
+
+  const eliminarServicio = (servicioId) => {
+  if (!confirm("¿Seguro que querés eliminar este servicio?")) return;
+
+  socket.emit("eliminar_servicio",{
+      negocioId: negocioSeleccionado.value.id,
+      servicioId: servicioId,
+    },
+    (res) => {
+      if (res.success) {
+        servicios.value = res.servicios; // actualizar la lista local
+        alert("Servicio eliminado con éxito");
+      } else {
+        alert(res.message || "Error al eliminar servicio");
+      }
+    }
+  );
+};
+
 </script>
 
 <style>
