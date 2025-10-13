@@ -1,67 +1,85 @@
 // /Rutas/tickets.js
-import express from "express";
 import Ticket from "../Sockets/ticket.js";
 
-const router = express.Router();
+export default function registrarTicketsHandlers(io) {
+  io.on("connection", (socket) => {
+    console.log("Cliente conectado a tickets:", socket.id);
 
-// ----------------------------
-// Crear ticket de soporte
-// POST /tickets
-// ----------------------------
-router.post("/", async (req, res) => {
-  try {
-    const { Titulo, Descripcion, ID_U, ID_N } = req.body;
+    // ----------------------------
+    // Crear ticket de soporte
+    // ----------------------------
+    socket.on("crear_ticket", async (data, callback) => {
+      try {
+        const { Titulo, Descripcion, ID_U, ID_N } = data;
 
-    if (!Titulo || !Descripcion || !ID_U) {
-      return res.status(400).json({ success: false, message: "Faltan datos requeridos" });
-    }
+        if (!Titulo || !Descripcion || !ID_U) {
+          return callback({ success: false, message: "Faltan datos requeridos" });
+        }
 
-    const nuevoTicket = await Ticket.create({
-      Titulo,
-      Descripcion,
-      Estado: "Abierto",   // siempre empieza abierto
-      ID_U,
-      ID_N: ID_N || null,
-      Fecha_creacion: new Date()
+        const nuevoTicket = await Ticket.create({
+          Titulo,
+          Descripcion,
+          Estado: "Abierto",
+          ID_U,
+          ID_N: ID_N || null,
+          Fecha_creacion: new Date(),
+        });
+
+        callback({ success: true, ticket: nuevoTicket });
+      } catch (error) {
+        console.error("Error en crear_ticket:", error);
+        callback({ success: false, message: "Error al crear ticket" });
+      }
     });
 
-    res.json({ success: true, ticket: nuevoTicket });
-  } catch (error) {
-    console.error("Error al crear ticket:", error);
-    res.status(500).json({ success: false, message: "Error al crear ticket" });
-  }
-});
+    // ----------------------------
+    // Listar tickets de un usuario
+    // ----------------------------
+    socket.on("listar_tickets_usuario", async ({ idUsuario }, callback) => {
+      try {
+        const tickets = await Ticket.find({ ID_U: idUsuario });
+        callback({ success: true, tickets });
+      } catch (error) {
+        console.error("Error en listar_tickets_usuario:", error);
+        callback({ success: false, message: "Error al listar tickets" });
+      }
+    });
 
-// ----------------------------
-// Listar tickets de un usuario
-// GET /tickets/usuario/:idUsuario
-// ----------------------------
-router.get("/usuario/:idUsuario", async (req, res) => {
-  try {
-    const tickets = await Ticket.find({ ID_U: req.params.idUsuario });
-    res.json({ success: true, tickets });
-  } catch (error) {
-    console.error("Error al listar tickets:", error);
-    res.status(500).json({ success: false, message: "Error al listar tickets" });
-  }
-});
+    // ----------------------------
+    // Obtener ticket por ID
+    // ----------------------------
+    socket.on("obtener_ticket", async ({ id }, callback) => {
+      try {
+        const ticket = await Ticket.findById(id);
+        if (!ticket)
+          return callback({ success: false, message: "Ticket no encontrado" });
 
-// ----------------------------
-// Obtener ticket por ID
-// GET /tickets/:id
-// ----------------------------
-router.get("/:id", async (req, res) => {
-  try {
-    const ticket = await Ticket.findById(req.params.id);
-    if (!ticket) return res.status(404).json({ success: false, message: "Ticket no encontrado" });
+        callback({ success: true, ticket });
+      } catch (error) {
+        console.error("Error en obtener_ticket:", error);
+        callback({ success: false, message: "Error al obtener ticket" });
+      }
+    });
 
-    res.json({ success: true, ticket });
-  } catch (error) {
-    console.error("Error al obtener ticket:", error);
-    res.status(500).json({ success: false, message: "Error al obtener ticket" });
-  }
-});
+    // ----------------------------
+    // Actualizar estado del ticket (solo soporte)
+    // ----------------------------
+    socket.on("actualizar_estado_ticket", async ({ id, nuevoEstado }, callback) => {
+      try {
+        const ticket = await Ticket.findByIdAndUpdate(
+          id,
+          { Estado: nuevoEstado },
+          { new: true }
+        );
 
-// ----------------------------
-// Actualizar estado de ticket (solo soporte)
-// PATCH /tic
+        if (!ticket)
+          return callback({ success: false, message: "Ticket no encontrado" });
+
+        callback({ success: true, ticket });
+      } catch (error) {
+        console.error("Error en actualizar_estado_ticket:", error);
+        callback({ success: false, message: "Error al actualizar ticket" });
+      }
+    });
+  });
+}

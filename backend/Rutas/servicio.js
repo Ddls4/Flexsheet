@@ -1,69 +1,76 @@
-// Rutas/servicio.js
-import express from "express";
-import Servicio from "../Sockets/servicio.js"; // recuerda, tus modelos viven en /Sockets
+// /Rutas/servicio.js
+import Servicio from "../Sockets/servicio.js";
 
-const router = express.Router();
+export default (io) => {
+  io.on("connect", (socket) => {
+    console.log("Cliente conectado para gestión de servicios:", socket.id);
 
-// 📌 Crear servicio
-router.post("/servicios", async (req, res) => {
-  try {
-    const { Nombre_S, Descripcion, Precio, Contacto_S, ID_N } = req.body;
+    //  Crear servicio 
+    socket.on("crear_servicio", async (data, callback) => {
+      try {
+        const { Nombre_S, Descripcion, Precio, Contacto_S, ID_N } = data;
 
-    const nuevoServicio = new Servicio({
-      Nombre_S,
-      Descripcion,
-      Precio,
-      Contacto_S,
-      ID_N,
+        const nuevoServicio = new Servicio({
+          Nombre_S,
+          Descripcion,
+          Precio,
+          Contacto_S,
+          ID_N,
+        });
+
+        await nuevoServicio.save();
+
+        callback({
+          success: true,
+          message: "Servicio creado con éxito",
+          servicio: nuevoServicio,
+        });
+      } catch (error) {
+        console.error("Error en crear_servicio:", error);
+        callback({ success: false, message: "Error al crear servicio" });
+      }
     });
 
-    await nuevoServicio.save();
+    //  Listar todos los servicios (equivalente a GET /servicios)
+    socket.on("listar_servicios", async (callback) => {
+      try {
+        const servicios = await Servicio.find();
+        callback({ success: true, servicios });
+      } catch (error) {
+        console.error("Error en listar_servicios:", error);
+        callback({ success: false, message: "Error al obtener servicios" });
+      }
+    });
 
-    res.json({ success: true, message: "Servicio creado con éxito", servicio: nuevoServicio });
-  } catch (error) {
-    console.error("Error en POST /servicios:", error);
-    res.status(500).json({ success: false, message: "Error al crear servicio" });
-  }
-});
+    //  Listar servicios de un negocio (equivalente a GET /servicios/negocio/:idNegocio)
+    socket.on("servicios_por_negocio", async ({ idNegocio }, callback) => {
+      try {
+        const servicios = await Servicio.find({ ID_N: idNegocio });
+        callback({ success: true, servicios });
+      } catch (error) {
+        console.error("Error en servicios_por_negocio:", error);
+        callback({
+          success: false,
+          message: "Error al obtener servicios del negocio",
+        });
+      }
+    });
 
-// 📌 Listar todos los servicios
-router.get("/servicios", async (req, res) => {
-  try {
-    const servicios = await Servicio.find();
-    res.json({ success: true, servicios });
-  } catch (error) {
-    console.error("Error en GET /servicios:", error);
-    res.status(500).json({ success: false, message: "Error al obtener servicios" });
-  }
-});
+    //  Eliminar servicio (equivalente a DELETE /servicios/:id)
+    socket.on("eliminar_servicio", async ({ id }, callback) => {
+      try {
+        const servicioEliminado = await Servicio.findByIdAndDelete(id);
+        if (!servicioEliminado)
+          return callback({
+            success: false,
+            message: "Servicio no encontrado",
+          });
 
-// 📌 Listar servicios de un negocio por ID_N
-router.get("/servicios/negocio/:idNegocio", async (req, res) => {
-  try {
-    const { idNegocio } = req.params;
-    const servicios = await Servicio.find({ ID_N: idNegocio });
-    res.json({ success: true, servicios });
-  } catch (error) {
-    console.error("Error en GET /servicios/negocio/:idNegocio:", error);
-    res.status(500).json({ success: false, message: "Error al obtener servicios del negocio" });
-  }
-});
-
-// 📌 Eliminar servicio por ID
-router.delete("/servicios/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const servicioEliminado = await Servicio.findByIdAndDelete(id);
-
-    if (!servicioEliminado) {
-      return res.status(404).json({ success: false, message: "Servicio no encontrado" });
-    }
-
-    res.json({ success: true, message: "Servicio eliminado con éxito" });
-  } catch (error) {
-    console.error("Error en DELETE /servicios/:id:", error);
-    res.status(500).json({ success: false, message: "Error al eliminar servicio" });
-  }
-});
-
-export default router;
+        callback({ success: true, message: "Servicio eliminado con éxito" });
+      } catch (error) {
+        console.error("Error en eliminar_servicio:", error);
+        callback({ success: false, message: "Error al eliminar servicio" });
+      }
+    });
+  });
+};
