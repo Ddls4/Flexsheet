@@ -1,65 +1,70 @@
 <template>
-
-  <q-page class="flex flex-center bg-blue-grey-10 text-white q-pa-md" >
-    <div class="column q-pa-md bg-blue-grey-10 text-white " style="width: 100%; height: 100dvh; ">
-
-      <!-- Sección de bienvenida -->
-      <div class="col-6 col-md-5 bg-blue-grey-7 q-pa-lg q-rounded-borders shadow-2 ">
-        <div class="text-center q-mb-md">
-          <q-label class="text-h1 text-weight-bolder text-white">AltaShop</q-label>
-        </div>
-        <div class="text-body1 q-mx-lg text-justify" style="margin-top: 50px;" >   
-          Elegí el mejor lugar para lavar tu auto según tu tiempo y preferencias, todo desde un solo lugar.
-        </div>
+<q-page class="flex flex-center bg-blue-grey-10 text-white">
+  <div
+    class="column items-center justify-center q-pa-xl"
+    style="width: 100%; max-width: 900px; text-align: center; min-height: calc(100vh - 100px);"
+  >
+    <q-img
+      src="~assets/bg-carwash.jpg"
+      class="absolute-top-left"
+      style="opacity: 0.04; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
+    />
+    <!-- Título -->
+      <div
+        class="text-h1 text-weight-bolder q-mb-sm"
+        style="text-shadow: 0 2px 8px rgba(0,0,0,0.3); background: linear-gradient(90deg, #fff, #cfd8dc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+      >
+        Altashop
       </div>
-      <!-- Sección de instrucciones -->
-      <div class="col-6 col-md-5 bg-blue-grey-8 q-pa-lg q-rounded-borders shadow-2">
-        <div class="text-body1 text-justify q-mb-md" style="margin: 50px;">   
-          Para comenzar, ingresá a la sección <strong>Productos</strong> para explorar nuestra tienda.  
-          Desde el menú de <strong>Opciones</strong> podés personalizar tu experiencia.  
-          Agregá los artículos que te gusten al carrito y descubrí una nueva forma de comprar.
-        </div>
-        <!-- Información del usuario -->
-        <div v-if="user" class="bg-blue-grey-6 q-pa-md q-mt-md q-rounded-borders shadow-1 text-center">
-          <h5 class="text-white text-weight-bold q-mb-xs">Bienvenido, {{ user.nombre }}</h5>
-          <p class="text-caption text-grey-3">Tu ID es: {{ user.id }}</p>
-        </div>
 
-        <q-banner v-else type="warning" color="amber-7" class="q-mt-md text-center text-dark">
-          No hay usuario logueado
-        </q-banner> 
+      <!-- Subtítulo -->
+      <div class="text-subtitle1 text-grey-4 q-mb-xl">
+        Elegí el mejor lugar para lavar tu auto según tu tiempo <br>
+        y preferencias, todo desde un solo lugar.
+      </div>
+
+      <!-- Botones tipo tarjeta -->
+      <div class="row justify-center q-gutter-lg q-mb-xl">
+        <q-card
+          v-for="item in items"
+          :key="item.label"
+          class="bg-blue-grey-7 text-white q-pa-lg cursor-pointer"
+          style="width: 180px; transition: transform 0.2s;"
+          @mouseover="hover = item.label"
+          @mouseleave="hover = ''"
+          :style="hover === item.label ? 'transform: scale(1.08);' : ''"
+        >
+          <q-icon :name="item.icon" size="40px" class="q-mb-sm" />
+          <div class="text-subtitle1 text-bold">{{ item.label }}</div>
+        </q-card>
+      </div>
+
+      <!-- Texto descriptivo -->
+      <div class="text-body1 text-grey-3 q-mx-md q-mb-md">
+        Para comenzar, ingresá a la sección <strong>Productos</strong> para explorar nuestra tienda.
+        Desde el menú de <strong>Opciones</strong> podés personalizar tu experiencia.
+        Agregá los artículos que te gusten al carrito y descubrí una nueva forma de comprar.
+      </div>
+
+      <!-- Footer -->
+      <div class="text-caption text-grey-5 q-mt-xl">
+        © 2025 Altashop - Hecho con Quasar
       </div>
 
     </div>
-
   </q-page>
-
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue';
+  import { ref } from 'vue'
+  const hover = ref('')
 
-  const user = ref(null);
+  const items = [
+    { label: 'Productos', icon: 'store' },
+    { label: 'Historial', icon: 'history' },
+    { label: 'Configuración', icon: 'settings' }
+  ]
+</script>
 
-  onMounted(() => {
-    const data = localStorage.getItem('user');
-    if (data) {
-      try {
-        user.value = JSON.parse(data);
-      } catch (e) {
-        console.error('Error al leer localStorage:', e);
-      }
-    }
-  });
-  </script>
-
-<style>
-.border {
-  border: 2px solid transparent;
-  border-radius: 4px;
-}
-
-.border-primary {
-  border-color: #027be3; /* color azul de Quasar */
-}
+<style scoped>
 </style>

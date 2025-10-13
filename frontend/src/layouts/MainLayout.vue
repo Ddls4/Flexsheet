@@ -20,18 +20,9 @@
               />
             </router-link>
 
-            <q-badge
-              :color="socketConnected ? 'green' : 'red'"
-              class="q-ml-sm"
-              style="height: 20px;"
-            >
-              {{ socketConnected ? 'Conectado' : 'Desconectado' }}
-            </q-badge>
           </div>
           <div class="text-weight-bolder text-h5 q-ml-sm " >
-              <router-link to="/Menu" class="flex items-center text-white" >
-                <label> Productos</label>
-              </router-link>
+              <q-btn label="Productos" icon="web_asset" color="blue-grey-6" :to="`/Menu`" />
           </div>
         </q-toolbar-title>
 
@@ -108,7 +99,16 @@
               <div>{{ socketId ? `ID: ${socketId}` : 'Sin ID' }}</div>
               <div>Socket Status: {{ socketConnected ? 'Conectado' : 'Desconectado' }}</div>
               <div>IP: {{ ip }}</div>
-            </div>
+              <div>Tu ID es: {{ user }}</div>
+              
+              <q-badge
+                :color="socketConnected ? 'green' : 'red'"
+                class="q-ml-sm"
+                style="height: 20px;"
+              >
+                {{ socketConnected ? 'Conectado' : 'Desconectado' }}
+              </q-badge>
+              </div>
         </div>
 
       </div> 
@@ -166,6 +166,7 @@
   const socket = ref(null)
   const socketConnected = ref(false)
   const socketId = ref(null)
+  const user = ref(null);
 
   const iniciarSocket=()=>{
     socket.value = io(`http://${import.meta.env.VITE_P_IP}:80`, {
@@ -196,7 +197,7 @@
     socket.value.on('mensaje_servidor', (data) => {
       console.log('Mensaje recibido del servidor:', data)
     })
-
+ 
   // Limpiar el socket al desmontar el componente
   const cleanupSocket = () => {
     if (socket.value) {

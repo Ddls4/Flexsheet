@@ -1,121 +1,153 @@
 <template>
-  <q-page class=" flex  " >
-    <!--  -->
-    <div class="row q-pa-md bg-blue-grey-10 text-white fit ">
-      <!-- Filtros -->
-      <div class="col-3 col-md-3 col-lg-3 col-xl-2 col-12 bg-blue-grey-9 q-mb-md q-order-1 q-order-sm-0">
-          <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
-            <label>Filtro</label>
-          </div>
-          <div class="q-pa-md q-gutter-md">
-            <!-- Fecha -->
-            <q-date
-              v-model="filters.dateRange"
-              mask="YYYY-MM-DD"
-              color="blue-5"
-              dark
-              range
-              class="q-mb-md"
-            />
+ <q-page class="flex bg-blue-grey-10 text-white">
+    <!-- Fondo -->
+    <q-img
+      src="~assets/bg-carwash.jpg"
+      class="absolute-top-left"
+      style="opacity: 0.05; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
+    />
+    <!-- Contenedor general -->
+    <div class="row fit q-pa-md" style="z-index: 1;">
 
-            <!-- Hora -->
-            <q-time
-              v-model="filters.time"
-              format24h
-              color="blue-5"
-              dark
-              class="q-mb-md"
-            />
+      <!-- 🔹 Filtros laterales -->
+      <div
+        class="col-12 col-md-3 col-lg-2 bg-blue-grey-9 q-pa-md q-mb-md"
+        style="border-radius: 8px; min-height: 90vh;"
+      >
+        <div class="text-h6 text-center q-mb-md bg-blue-5 q-pa-sm rounded-borders">
+          <q-icon name="filter_alt" size="sm" class="q-mr-sm" /> Filtros
+        </div>
 
-            <!-- Mostrar fecha seleccionada -->
-            <div class="q-mb-lg text-subtitle2">{{ displayText }}</div>
-          </div>
+        <!-- Fecha y hora en inputs compactos -->
+        <div class="q-gutter-sm">
+          <q-input
+            v-model="filters.dateRange"
+            label="Fecha"
+            standout="bg-light-blue-5 text-white"
+            readonly
+            dense
+          >
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer" @click="showDate = true" />
+            </template>
+          </q-input>
 
-          <q-input standout="bg-light-blue-5 text-white" filled v-model="filters.nombre" label="Buscar Nombre" class="q-mb-md" />
-          <q-select standout="bg-light-blue-5 text-white" filled v-model="departamento" :options="departamentos" label="Departamento" class="q-mb-md"/>
-          <q-select standout="bg-light-blue-5 text-white" filled v-model="ciudad" :options="ciudades" label="Ciudad" class="q-mb-md"/>
-          <q-select standout="bg-light-blue-5 text-white" filled v-model="precio" :options="precios" label="Precio" class="q-mb-md" />
+          <q-input
+            v-model="filters.time"
+            label="Hora"
+            standout="bg-light-blue-5 text-white"
+            readonly
+            dense
+          >
+            <template v-slot:append>
+              <q-icon name="access_time" class="cursor-pointer" @click="showTime = true" />
+            </template>
+          </q-input>
 
+          <!-- Dialogs compactos -->
+          <q-dialog v-model="showDate">
+            <q-card>
+              <q-date v-model="filters.dateRange" mask="YYYY-MM-DD" range color="blue-5" />
+              <q-card-actions align="right">
+                <q-btn flat label="OK" color="primary" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
+          <q-dialog v-model="showTime">
+            <q-card>
+              <q-time v-model="filters.time" format24h color="blue-5" />
+              <q-card-actions align="right">
+                <q-btn flat label="OK" color="primary" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
+          <!-- Otros filtros -->
+          <q-input standout="bg-light-blue-5 text-white" dense filled v-model="filters.nombre" label="Buscar Nombre" />
+          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="departamento" :options="departamentos" label="Departamento" />
+          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="ciudad" :options="ciudades" label="Ciudad" />
+          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="precio" :options="precios" label="Precio" />
+        </div>
       </div>
 
-      <!-- Cargar Negocios -->
-      <div class="col-9 bg-blue-grey-8 " >
-        <div class="row q-col-gutter-md" style="margin: 5px;"> 
-          <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <q-card style="max-width: 200px;" class="cursor-pointer"
-            @click="cardClicked(card)">
-              
-              <q-card-section style="padding: 0;">
-                <q-img 
-                  v-if="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
-                  :src="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
-                  style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
-                >
-                <div class="absolute-bottom text-subtitle2 text-center">{{ card.Nombre_N}}</div>
-                
-                </q-img>
-              </q-card-section>
-
+       <!-- 🔹 Zona de negocios -->
+      <div class="col-12 col-md-9 col-lg-10">
+        <div class="row q-col-gutter-md ">
+          <div
+            v-for="(card, index) in cards"
+            :key="index"
+            class="col-6 col-sm-4 col-md-3 col-lg-2 q-mb-md"
+          >
+            <q-card
+              class="cursor-pointer hover-card"
+              @click="cardClicked(card)"
+            >
+              <q-img
+                :src="card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+                ratio="1"
+                class="rounded-borders"
+              >
+                <div class="absolute-bottom text-center text-subtitle2 bg-blue-grey-10 bg-opacity-60">
+                  {{ card.Nombre_N }}
+                </div>
+              </q-img>
             </q-card>
           </div>
         </div>
       </div>
-
     </div>
 
-<q-dialog v-model="showDialog" persistent>
-  <q-card style="min-width: 80vw; max-width: 90vw;">
-    <q-card-section class="row">
+    <!-- 🔹 Diálogo de negocio -->
+    <q-dialog v-model="showDialog" persistent>
+      <q-card style="min-width: 80vw; max-width: 90vw;">
+        <q-card-section class="row">
 
-      <!-- Lado izquierdo: Servicios con checkboxes -->
-      <div class="col-6 q-pa-md" style="border-right: 1px solid #ccc;">
-        <div
-          v-for="(servicio, index) in selectedCard?.servicios || []"
-          :key="index"
-          class="q-mb-md row items-center"
-        >
-          <q-checkbox
-            :model-value="isInCart(servicio)"
-            @update:model-value="val => toggleProductSelection(servicio, val)"
-            class="q-mr-sm"
-          />
-          <q-img
-            :src="servicio.imagenURL || 'https://via.placeholder.com/80'"
-            alt="Imagen del servicio"
-            style="width: 80px; height: 80px; object-fit: cover;"
-            class="q-mr-md"
-          />
-          <div>
-            <div class="text-subtitle2">{{ servicio.titulo }}</div>
-            <div class="text-caption">Precio: ${{ servicio.precio }}</div>
-            <div class="text-caption text-grey">{{ servicio.descripcion }}</div>
+          <div class="col-6 q-pa-md" style="border-right: 1px solid #ccc;">
+            <div
+              v-for="(servicio, index) in selectedCard?.servicios || []"
+              :key="index"
+              class="q-mb-md row items-center"
+            >
+              <q-checkbox
+                :model-value="isInCart(servicio)"
+                @update:model-value="val => toggleProductSelection(servicio, val)"
+                class="q-mr-sm"
+              />
+              <q-img
+                :src="servicio.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+                alt="Imagen del servicio"
+                style="width: 80px; height: 80px; object-fit: cover;"
+                class="q-mr-md rounded-borders"
+              />
+              <div>
+                <div class="text-subtitle2">{{ servicio.titulo }}</div>
+                <div class="text-caption">Precio: ${{ servicio.precio }}</div>
+                <div class="text-caption text-grey">{{ servicio.descripcion }}</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Lado derecho: Información del negocio -->
-      <div class="col-6 q-pa-md">
-        <h5 class="q-mb-sm">{{ selectedCard?.Nombre_N }}</h5>
-        <q-img
-          :src="selectedCard?.url_i || 'https://via.placeholder.com/300x200'"
-          alt="Imagen del negocio"
-          style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;"
-          class="q-mb-md"
-        />
-        <p class="q-mb-none"><b>Departamento:</b> {{ selectedCard?.Departamento }}</p>
-        <p><b>Ciudad:</b> {{ selectedCard?.Ciudad }}</p>
-      </div>
+          <div class="col-6 q-pa-md">
+            <h5 class="q-mb-sm">{{ selectedCard?.Nombre_N }}</h5>
+            <q-img
+              :src="selectedCard?.url_i || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+              style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;"
+              class="q-mb-md"
+            />
+            <p class="q-mb-none"><b>Departamento:</b> {{ selectedCard?.Departamento }}</p>
+            <p><b>Ciudad:</b> {{ selectedCard?.Ciudad }}</p>
+          </div>
 
-    </q-card-section>
+        </q-card-section>
 
-    <q-card-actions align="right">
-      <q-btn flat label="Cerrar" color="primary" v-close-popup />
-    </q-card-actions>
-  </q-card>
-</q-dialog>
-
+        <q-card-actions align="right">
+          <q-btn flat label="Cerrar" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
-
+  
 </template>
 
 
@@ -138,13 +170,12 @@ const showDialog = ref(false)        // Control q-dialog
 
 // === Filtros ===
 const filters = ref({
-  dateRange: { from: '', to: '' },
-  time: '',
-  nombre: '',
-  departamento: '',
-  ciudad: '',
-  precio: ''
+  dateRange: null,
+  time: null,
+  nombre: "",
 })
+const showDate = ref(false)
+const showTime = ref(false)
 
 const displayText = computed(() => {
   const { from, to } = filters.value.dateRange
@@ -206,13 +237,13 @@ onMounted(() => {
 
 
 
-<style>
-.border {
-  border: 2px solid transparent;
-  border-radius: 4px;
-}
 
-.border-primary {
-  border-color: #027be3; /* color azul de Quasar */
+<style scoped>
+.hover-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 </style>
