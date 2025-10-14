@@ -64,9 +64,9 @@
           </q-dialog>
 
           <!-- Otros filtros -->
-          <q-input standout="bg-light-blue-5 text-white" dense filled v-model="filters.nombre" label="Buscar Nombre" />
-          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="departamento" :options="departamentos" label="Departamento" />
-          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="ciudad" :options="ciudades" label="Ciudad" />
+          <q-input input-class="text-white" standout="bg-light-blue-5 text-white" dense filled v-model="filters.nombre" label="Buscar Nombre" />
+          <q-select use-chips standout="bg-light-blue-5 text-white" dense filled v-model="departamento" :options="Object.keys(ciudadesPorDepartamento)" label="Departamento" />
+          <q-select use-chips standout="bg-light-blue-5 text-white" dense filled v-model="ciudad" :options="ciudades" label="Ciudad" />
           <q-select standout="bg-light-blue-5 text-white" dense filled v-model="precio" :options="precios" label="Precio" />
         </div>
       </div>
@@ -147,7 +147,6 @@
       </q-card>
     </q-dialog>
   </q-page>
-  
 </template>
 
 
@@ -191,11 +190,41 @@ const displayText = computed(() => {
 const departamento = ref(null)
 const ciudad = ref(null)
 const precio = ref(null)
-const departamentos = ref(['Montevideo', 'Canelones', 'Maldonado'])
-const ciudades = ref(['Ciudad Vieja', 'Pando', 'Punta del Este'])
+
 const precios = ref(['< $1000', '$1000 - $5000', '> $5000'])
 
+
+// 
+
+const ciudadesPorDepartamento = {
+  'Artigas': ['Artigas', 'Bella Unión', 'Tomás Gomensoro'],
+  'Canelones': ['Canelones', 'Las Piedras', 'La Paz', 'Santa Lucía'],
+  'Cerro Largo': ['Melo', 'Río Branco', 'Fraile Muerto'],
+  'Colonia': ['Colonia del Sacramento', 'Carmelo', 'Nueva Helvecia'],
+  'Durazno': ['Durazno', 'Sarandí del Yí'],
+  'Flores': ['Trinidad'],
+  'Florida': ['Florida', 'Sarandí Grande', 'Casupá'],
+  'Lavalleja': ['Minas', 'José Pedro Varela'],
+  'Maldonado': ['Maldonado', 'Punta del Este', 'San Carlos'],
+  'Montevideo': ['Montevideo'],
+  'Paysandú': ['Paysandú', 'Guichón', 'Quebracho'],
+  'Río Negro': ['Fray Bentos', 'Young'],
+  'Rivera': ['Rivera', 'Tranqueras'],
+  'Rocha': ['Rocha', 'Chuy', 'La Paloma'],
+  'Salto': ['Salto', 'Constitución', 'Belén'],
+  'San José': ['San José de Mayo', 'Libertad', 'Ciudad del Plata'],
+  'Soriano': ['Mercedes', 'Dolores'],
+  'Tacuarembó': ['Tacuarembó', 'Paso de los Toros'],
+  'Treinta y Tres': ['Treinta y Tres', 'Vergara']
+}; 
+
+const ciudades = computed(() => {
+  return departamento.value ? ciudadesPorDepartamento[departamento.value] : [];
+});
+
+
 // === Funciones ===
+
 
 // Cargar todos los negocios
 
@@ -246,4 +275,5 @@ onMounted(() => {
   transform: translateY(-4px);
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
+
 </style>
