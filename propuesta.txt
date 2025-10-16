@@ -42,3 +42,99 @@ identificacion de redes
 14/8 nosotros web
 14/8 Evaluar la propuesta
 
+--------------------------
+
+const bcrypt = require('bcrypt');
+const { Server } = require("socket.io");
+const Client = require("socket.io-client");
+
+jest.mock('../models/Usuario'); // Asegúrate de tener esto si el modelo está separado
+const Usuario = require('../models/Usuario');
+
+describe("Socket.IO - Evento 'registrar'", () => {
+  let io, serverSocket, clientSocket;
+
+  beforeAll((done) => {
+    const httpServer = require("http").createServer();
+    io = new Server(httpServer);
+    httpServer.listen(() => {
+      const port = httpServer.address().port;
+      clientSocket = Client(`http://localhost:${port}`);
+
+      io.on("connection", (socket) => {
+        serverSocket = socket;
+
+        // Aquí va tu función real
+        socket.on("registrar", async (data, callback) => {
+          try {
+            const usuarioExistente = await Usuario.findOne({ Nombre_U: data.username });
+            if (usuarioExistente) {
+              return callback({ success: false, message: "El nombre de usuario ya está en uso" });
+            }
+
+            const hashedPassword = await bcrypt.hash(data.password, 10);
+            const nuevoUsuario = await Usuario.create({
+              Nombre_U: data.username,
+              Contraseña: hashedPassword
+            });
+
+            callback({
+              success: true,
+              message: "Usuario registrado con éxito",
+              user: {
+                ID_U: nuevoUsuario._id,
+                Nombre_U: nuevoUsuario.Nombre_U
+              }
+            });
+          } catch (error) {
+            callback({ success: false, message: "Error al registrar usuario" });
+          }
+        });
+      });
+
+      clientSocket.on("connect", done);
+    });
+  });
+
+  afterAll(() => {
+    io.close();
+    clientSocket.close();
+  });
+
+  test("Debe registrar un usuario nuevo correctamente", (done) => {
+    Usuario.findOne.mockResolvedValue(null); // No existe
+    Usuario.create.mockResolvedValue({
+      _id: "123456",
+      Nombre_U: "testuser"
+    });
+
+    const data = { username: "testuser", password: "secret" };
+
+    clientSocket.emit("registrar", data, (response) => {
+      expect(response).toEqual({
+        success: true,
+        message: "Usuario registrado con éxito",
+        user: {
+          ID_U: "123456",
+          Nombre_U: "testuser"
+        }
+      });
+      done();
+    });
+  });
+
+  test("Debe fallar si el usuario ya existe", (done) => {
+    Usuario.findOne.mockResolvedValue({ Nombre_U: "testuser" });
+
+    const data = { username: "testuser", password: "secret" };
+
+    clientSocket.emit("registrar", data, (response) => {
+      expect(response).toEqual({
+        success: false,
+        message: "El nombre de usuario ya está en uso"
+      });
+      done();
+    });
+  });
+});
+
