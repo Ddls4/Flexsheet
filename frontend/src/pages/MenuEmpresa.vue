@@ -1,50 +1,79 @@
 <template>
-  <q-page class=" flex  " >
-    <!--  -->
-    <div class="row q-pa-md bg-blue-grey-10 text-white  " style="width: 100%; height: 100dvh; ">
-        <div class="col-2 bg-blue-grey-9 full-height">
-            <div class="row items-center q-gutter-sm q-mb-md full-width bg-blue-grey-5" style=" padding: 10px; border-radius: 5px; min-height: 60px; ">
-                <label> Menu de opciones</label>
-            </div>
-            <div class="row items-center q-gutter-sm q-mb-md full-width " style="background-color: #455a63; padding: 10px; border-radius: 5px; height: 500px; ">
-              <q-btn color="primary" 
-              class="text-white" 
-              @click="showCreateDialog = true"
-              icon="add">
-                  Crear
-              </q-btn>
-              <q-btn
-                  :color="selectionMode ? 'negative' : 'secondary'"
-                  class="text-white"
-                  @click="toggleSelectionMode"
-                  icon="select_all"
-              >
-                  {{ selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
-              </q-btn>
-              <q-btn
-                  color="negative"
-                  class="text-white"
-                  @click="showConfirmDialog = true"
-                  :disable="!selectionMode || selectedCardIndex === null"
-                  icon="remove"
-              >
-                  Eliminar
-              </q-btn>
-              <q-btn
-                  color="secondary"
-                  class="text-white"
-                  @click="editarCard"
-                  disable
-                  icon="edit"
-              >
-                  Editar
-              </q-btn>
-            
-            </div>
-
+  <q-page class=" flex bg-blue-grey-10 text-white " >
+    <!-- Imagen de fondo -->
+    <q-img
+      src="~assets/bg-carwash.jpg"
+      class="absolute-top-left"
+      style="opacity: 0.05; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
+    />
+    <!-- Contenedor general -->
+    <div class="row fit q-pa-md" style="z-index: 1;">
+      <!-- Botones laterales -->
+      <div
+        class="col-12 col-md-3 col-lg-2 bg-blue-grey-9 q-pa-md q-mb-md menu-lateral"
+        style="border-radius: 8px;"
+      >
+        <!-- Texto menu -->
+        <div class="text-h6 text-center q-mb-md bg-blue-5 q-pa-sm rounded-borders">
+          <q-icon name="filter_alt" size="sm" class="q-mr-sm" /> Menu de opciones
         </div>
-      <div class="col-9" style="background-color: #455a64;" >
+        <!-- Botones -->
+        <div class="q-gutter-md"
+      style="display: flex; flex-direction: column; align-items: center; padding-top: 15px; max-width: 500px; margin: 0 auto;">
+            <q-btn
+              color="primary"
+              class="text-white"
+              @click="showCreateDialog = true"
+              icon="add"
+              style="width: 100%; min-height: 42px;"
+              rounded
+              unelevated
+            >
+              Crear
+            </q-btn>
 
+            <q-btn
+              :color="selectionMode ? 'negative' : 'secondary'"
+              class="text-white"
+              @click="toggleSelectionMode"
+              icon="select_all"
+              style="width: 100%; min-height: 42px;"
+              rounded
+              unelevated
+            >
+              {{ selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
+            </q-btn>
+
+            <q-btn
+              color="negative"
+              class="text-white"
+              @click="showConfirmDialog = true"
+              :disable="!selectionMode || selectedCardIndex === null"
+              icon="remove"
+              style="width: 100%; min-height: 42px;"
+              rounded
+              unelevated
+            >
+              Eliminar
+            </q-btn>
+
+            <q-btn
+              color="secondary"
+              class="text-white"
+              @click="editarCard"
+              disable
+              icon="edit"
+              style="width: 100%; min-height: 42px;"
+              rounded
+              unelevated
+            >
+              Editar
+            </q-btn>
+        </div>
+
+      </div>
+      <!-- Zona de negocios -->
+      <div class="col-12 col-md-9 col-lg-10">
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
           
@@ -89,9 +118,9 @@
           </div>
         </div>
       </div>
-
     </div>
 
+    <!-- Dialog Cracion -->
     <q-dialog v-model="showCreateDialog" persistent> 
       <q-card style="min-width: 350px">
         <q-card-section>
@@ -113,9 +142,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-
-     <!-- Dialog Confirmación Eliminar -->
+    <!-- Dialog Confirmación Eliminar -->
     <q-dialog v-model="showConfirmDialog" persistent>
       <q-card style="min-width: 300px;">
         <q-card-section class="text-h6">
@@ -128,81 +155,72 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <!-- Drawer de Servicios -->
+    <q-drawer
+      v-model="showDrawer"
+      side="right"
+      bordered
+      width="400px"
+      behavior="mobile"
+      overlay
+    >
+      <q-toolbar>
+        <q-toolbar-title>Servicios de {{ negocioSeleccionado?.title }}</q-toolbar-title>
+        <q-btn flat icon="close" @click="showDrawer = false" />
+      </q-toolbar>
 
-  </q-page>
+      <q-card-section>
+        <div v-for="(servicio, i) in servicios" :key="i" class="q-mb-sm">
+          <q-card>
+            <q-card-section>
+              <div class="text-subtitle2">{{ servicio.titulo }}</div>
+              <div>{{ servicio.descripcion }}</div>
+              <div class="text-bold">${{ servicio.precio }}</div>
+            </q-card-section>
+            <q-card-actions align="right">
+              
+              <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
+              <q-btn color="negative" icon="delete" flat @click="eliminarServicio(servicio._id)" />
+            </q-card-actions>
+          </q-card>
+        </div>
+        <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
+      </q-card-section>
 
-  <!-- Drawer de Servicios -->
-  <q-drawer
-    v-model="showDrawer"
-    side="right"
-    bordered
-    width="400px"
-    behavior="mobile"
-    overlay
-  >
-    <q-toolbar>
-      <q-toolbar-title>Servicios de {{ negocioSeleccionado?.title }}</q-toolbar-title>
-      <q-btn flat icon="close" @click="showDrawer = false" />
-    </q-toolbar>
-
-    <q-card-section>
-      <div v-for="(servicio, i) in servicios" :key="i" class="q-mb-sm">
-        <q-card>
+      <q-dialog v-model="showServicioDialog" persistent>
+        <q-card style="min-width: 400px;">
           <q-card-section>
-            <div class="text-subtitle2">{{ servicio.titulo }}</div>
-            <div>{{ servicio.descripcion }}</div>
-            <div class="text-bold">${{ servicio.precio }}</div>
+            <div class="text-h6">{{ modoEdicion ? 'Editar Servicio' : 'Agregar Servicio' }}</div>
           </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <q-input v-model="formServicio.titulo" label="Título" dense autofocus />
+            <q-input v-model="formServicio.descripcion" label="Descripción" dense />
+            <q-input v-model="formServicio.precio" label="Precio" type="number" dense />
+            <q-input v-model="formServicio.imagenURL" label="URL de Imagen" dense />
+          </q-card-section>
+
           <q-card-actions align="right">
-            
-            <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
-            <q-btn color="negative" icon="delete" flat @click="eliminarServicio(servicio._id)" />
+            <q-btn flat label="Cancelar" color="primary" v-close-popup />
+            <q-btn flat :label="modoEdicion ? 'Guardar' : 'Agregar'" color="positive" @click="guardarServicio" />
           </q-card-actions>
         </q-card>
-      </div>
-      <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
-    </q-card-section>
-
-    <q-dialog v-model="showServicioDialog" persistent>
-      <q-card style="min-width: 400px;">
-        <q-card-section>
-          <div class="text-h6">{{ modoEdicion ? 'Editar Servicio' : 'Agregar Servicio' }}</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-input v-model="formServicio.titulo" label="Título" dense autofocus />
-          <q-input v-model="formServicio.descripcion" label="Descripción" dense />
-          <q-input v-model="formServicio.precio" label="Precio" type="number" dense />
-          <q-input v-model="formServicio.imagenURL" label="URL de Imagen" dense />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" color="primary" v-close-popup />
-          <q-btn flat :label="modoEdicion ? 'Guardar' : 'Agregar'" color="positive" @click="guardarServicio" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+      </q-dialog>
 
 
-  </q-drawer>
+    </q-drawer>
 
+  </q-page>
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue';
+  import { reactive, ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router'
-  import axios from 'axios'
   import { io } from "socket.io-client";
 
-  const router = useRouter()
-  const showCreateDialog = ref(false);
-  const showConfirmDialog = ref(false);
-  const cards = ref([]);
-  const newCard = ref({title: '',imagenURL: ''});
-  const selectedCardIndex = ref(null);
-  const selectionMode = ref(false);
-
+  // separar el Script en dos Negocios / Servicios y doc cada una
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  // socket 
   const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
     auth: {
       userId: storedUser.id
@@ -210,11 +228,37 @@
     withCredentials: true,
     autoConnect: false
   });
-
+  // Variables Negocios
+  const router = useRouter()
+  const showCreateDialog = ref(false);
+  const showConfirmDialog = ref(false);
+  const form= reactive({
+    nombre: '',
+    imagen: '',
+    descripcion: '',
+    precio: '',
+    titulo: ''
+  })
+  const cards = ref([]);
+  const newCard = ref({title: '',imagenURL: ''});
+  const selectedCardIndex = ref(null);
+  const selectionMode = ref(false);
   const showDrawer = ref(false)
   const negocioSeleccionado = ref(null)
   const servicios = ref([])
 
+  // Variables Servicios
+  const showServicioDialog = ref(false)
+  const modoEdicion = ref(false)
+  const formServicio = ref({
+    titulo: '',
+    descripcion: '',
+    precio: '',
+    imagenURL: ''
+  })
+  let servicioEditIndex = null
+
+  // Funciones Negocios
   const fetchUserCards = async () => {
     // Usar Promise para manejar la respuesta
     new Promise((resolve, reject) => {
@@ -280,8 +324,7 @@
         alert(res.message || "Error al eliminar negocio");
       }
     });
-  };
-      
+  };   
   onMounted(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -291,7 +334,6 @@
       router.push('/login');
     }
   });
-
   const cardClicked = (index) => {
     // Si está en modo selección, no abrir el drawer
     if (selectionMode.value) {
@@ -313,17 +355,7 @@
     })
   }
 
-  // Agregar Servicio 
-  const showServicioDialog = ref(false)
-  const modoEdicion = ref(false)
-  const formServicio = ref({
-    titulo: '',
-    descripcion: '',
-    precio: '',
-    imagenURL: ''
-  })
-  let servicioEditIndex = null
-
+  // Funciones Servicios
   const abrirFormularioAgregarServicio = () => {
     modoEdicion.value = false
     formServicio.value = {
@@ -334,14 +366,12 @@
     }
     showServicioDialog.value = true
   }
-
   const editarServicio = (index) => {
     modoEdicion.value = true
     servicioEditIndex = index
     formServicio.value = { ...servicios.value[index] }
     showServicioDialog.value = true
   }
-
   const guardarServicio = () => {
     if (!formServicio.value.titulo || !formServicio.value.precio) {
       alert('Título y precio son obligatorios')
@@ -379,7 +409,6 @@
 
     showServicioDialog.value = false
   }
-
   const eliminarServicio = (servicioId) => {
   if (!confirm("¿Seguro que querés eliminar este servicio?")) return;
 
@@ -396,7 +425,7 @@
       }
     }
   );
-};
+  };
 
 </script>
 
@@ -408,5 +437,15 @@
 
 .border-primary {
   border-color: #027be3; /* color azul de Quasar */
+}
+.menu-lateral {
+  min-height: 90vh;
+  border-radius: 8px;
+}
+
+@media (max-width: 1025px) {
+  .menu-lateral {
+    min-height: 40vh; /* reduce altura a 40% en pantallas chicas */
+  }
 }
 </style>
