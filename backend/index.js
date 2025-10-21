@@ -179,7 +179,8 @@ io.on("connect", (socket) => {
         cards: negocios.map(n => ({
           id: n._id,
           title: n.Nombre_N,
-          imagenURL: n.url_i
+          imagenURL: n.url_i,
+          servicios: n.servicios
         }))
       });
 

@@ -156,59 +156,57 @@
       </q-card>
     </q-dialog>
     <!-- Drawer de Servicios -->
-    <q-drawer
-      v-model="showDrawer"
-      side="right"
-      bordered
-      width="400px"
-      behavior="mobile"
-      overlay
-    >
-      <q-toolbar>
-        <q-toolbar-title>Servicios de {{ negocioSeleccionado?.title }}</q-toolbar-title>
-        <q-btn flat icon="close" @click="showDrawer = false" />
-      </q-toolbar>
+    <q-dialog v-model="showDrawer" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="bg-blue-grey-10 text-white" style="min-width: 400px; max-width: 90vw; max-height: 90vh;">
+        <q-toolbar>
+          <q-toolbar-title>
+            Servicios de {{ negocioSeleccionado?.title }}
+          </q-toolbar-title>
+          <q-btn flat dense icon="close" @click="showDrawer = false" />
+        </q-toolbar>
 
-      <q-card-section>
-        <div v-for="(servicio, i) in servicios" :key="i" class="q-mb-sm">
-          <q-card>
+        <q-separator dark />
+
+        <q-card-section style="overflow-y: auto; max-height: 60vh;">
+          <div v-for="(servicio, i) in servicios" :key="i" class="q-mb-sm ">
+            <q-card flat bordered class="bg-blue-grey-9">
+              <q-card-section>
+                <div class="text-subtitle2">{{ servicio.titulo }}</div>
+                <div>{{ servicio.descripcion }}</div>
+                <div class="text-bold">${{ servicio.precio }}</div>
+              </q-card-section>
+              <q-card-actions align="right">
+                <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
+                <q-btn color="negative" icon="delete" flat @click="eliminarServicio(servicio._id)" />
+              </q-card-actions>
+            </q-card>
+          </div>
+
+          <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
+        </q-card-section>
+
+        <!-- Dialogo para editar/agregar servicio -->
+        <q-dialog v-model="showServicioDialog" persistent>
+          <q-card style="min-width: 400px;">
             <q-card-section>
-              <div class="text-subtitle2">{{ servicio.titulo }}</div>
-              <div>{{ servicio.descripcion }}</div>
-              <div class="text-bold">${{ servicio.precio }}</div>
+              <div class="text-h6">{{ modoEdicion ? 'Editar Servicio' : 'Agregar Servicio' }}</div>
             </q-card-section>
+
+            <q-card-section class="q-pt-none">
+              <q-input v-model="formServicio.titulo" label="Título" dense autofocus />
+              <q-input v-model="formServicio.descripcion" label="Descripción" dense />
+              <q-input v-model="formServicio.precio" label="Precio" type="number" dense />
+              <q-input v-model="formServicio.imagenURL" label="URL de Imagen" dense />
+            </q-card-section>
+
             <q-card-actions align="right">
-              
-              <q-btn color="primary" icon="edit" flat @click="editarServicio(i)" />
-              <q-btn color="negative" icon="delete" flat @click="eliminarServicio(servicio._id)" />
+              <q-btn flat label="Cancelar" color="primary" v-close-popup />
+              <q-btn flat :label="modoEdicion ? 'Guardar' : 'Agregar'" color="positive" @click="guardarServicio" />
             </q-card-actions>
           </q-card>
-        </div>
-        <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
-      </q-card-section>
-
-      <q-dialog v-model="showServicioDialog" persistent>
-        <q-card style="min-width: 400px;">
-          <q-card-section>
-            <div class="text-h6">{{ modoEdicion ? 'Editar Servicio' : 'Agregar Servicio' }}</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            <q-input v-model="formServicio.titulo" label="Título" dense autofocus />
-            <q-input v-model="formServicio.descripcion" label="Descripción" dense />
-            <q-input v-model="formServicio.precio" label="Precio" type="number" dense />
-            <q-input v-model="formServicio.imagenURL" label="URL de Imagen" dense />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Cancelar" color="primary" v-close-popup />
-            <q-btn flat :label="modoEdicion ? 'Guardar' : 'Agregar'" color="positive" @click="guardarServicio" />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-
-    </q-drawer>
+        </q-dialog>
+      </q-card>
+    </q-dialog>
 
   </q-page>
 </template>
@@ -258,7 +256,9 @@
   })
   let servicioEditIndex = null
 
-  // Funciones Negocios
+  // -- Funciones Negocios --
+
+  // Carga los Negocio para verlos  
   const fetchUserCards = async () => {
     // Usar Promise para manejar la respuesta
     new Promise((resolve, reject) => {
@@ -274,7 +274,8 @@
           cards.value = response.cards.map(card => ({
             id: card.id,
             title: card.title,
-            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'
+            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
+            servicios: card.servicios || []
           }));
           resolve(response.cards);
         }
@@ -283,6 +284,7 @@
       console.error("Error al obtener cards:", error);
     });
   };
+  // Agregamos un Negocio
   function agregarProducto() {
     if (!form.value.nombre || !form.value.imagen || !form.value.precio) {
       alert('Completa los campos obligatorios');
@@ -300,14 +302,17 @@
     };
     dialog.value = false;
   }
+  // Modo Selecionar 
   const toggleSelectionMode = () => {
       selectionMode.value = !selectionMode.value;
       selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
   };
+  // Confirmar Eliminar
   const confirmarEliminar = () => {
       eliminarNegocioSeleccionado();
       showConfirmDialog.value = false;
   };
+  // Eliminar el Negocio Selecionado
   const eliminarNegocioSeleccionado = () => {
     if (selectedCardIndex.value === null) return alert("Selecciona un negocio primero");
 
@@ -324,16 +329,8 @@
         alert(res.message || "Error al eliminar negocio");
       }
     });
-  };   
-  onMounted(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      socket.connect();
-      fetchUserCards();
-    } else {
-      router.push('/login');
-    }
-  });
+  }; 
+  // Negocio Clickeado
   const cardClicked = (index) => {
     // Si está en modo selección, no abrir el drawer
     if (selectionMode.value) {
@@ -354,8 +351,21 @@
       }
     })
   }
+  // onMounted -> ver el user y llama a Carga los Negocio
+  onMounted(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      socket.connect();
+      fetchUserCards();
+    } else {
+      router.push('/login');
+    }
+  });
 
-  // Funciones Servicios
+
+  // -- Funciones Servicios --
+
+  // Abrir el dialog de agregar servicio 
   const abrirFormularioAgregarServicio = () => {
     modoEdicion.value = false
     formServicio.value = {
@@ -366,12 +376,14 @@
     }
     showServicioDialog.value = true
   }
+  // Edita los Servicos
   const editarServicio = (index) => {
     modoEdicion.value = true
     servicioEditIndex = index
     formServicio.value = { ...servicios.value[index] }
     showServicioDialog.value = true
   }
+  // Guarda los cambios Cuando Creas o Editas
   const guardarServicio = () => {
     if (!formServicio.value.titulo || !formServicio.value.precio) {
       alert('Título y precio son obligatorios')
@@ -409,6 +421,7 @@
 
     showServicioDialog.value = false
   }
+  // Elimina el Servico
   const eliminarServicio = (servicioId) => {
   if (!confirm("¿Seguro que querés eliminar este servicio?")) return;
 
