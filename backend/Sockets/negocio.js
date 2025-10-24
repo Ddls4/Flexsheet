@@ -9,7 +9,7 @@ const negocioSchema = new mongoose.Schema({
   Ciudad: String,
   // visibilidad: si está en edición, se oculta
   usuario: { type: Schema.Types.ObjectId, ref: 'Usuario' },
-  visible: { type: Boolean, default: true },
+  publico: { type: Boolean, default: false },
   servicios: [
     {
       titulo: String,

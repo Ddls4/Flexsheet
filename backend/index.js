@@ -1,12 +1,13 @@
 import path from "path";
 import { servidor, io } from "./config.js";
+import bcrypt from "bcrypt";
+// BD
+import { initDB } from './initDB.js';
 import Usuario from "./Sockets/usuario.js";
 import Negocio from "./Sockets/negocio.js";
-import Card from "./Sockets/card.js";
-
 import tabla from "./Sockets/tabla.js";
-import bcrypt from "bcrypt";
-import { initDB } from './initDB.js';
+
+
 
 // -------------------
 // Conexión a MongoDB
@@ -47,7 +48,8 @@ io.on("connect", (socket) => {
       // Crear usuario nuevo
       const nuevoUsuario = await Usuario.create({
         Nombre_U: data.username,
-        Contraseña: hashedPassword
+        Contraseña: hashedPassword,
+        tipo_empresa: false,
       });
       console.log("Usuario registrado:", nuevoUsuario.Nombre_U);
 
@@ -95,21 +97,81 @@ io.on("connect", (socket) => {
   // Negocio
   // -------------------
   // Esto esta en el RegistroEmpresa.vue
+  socket.on("RegistroEmpresa", async ({ userId }, callback) => {
+    console.log(userId)
+    try {
+      // Verificar que se reciba el ID del usuario
+      if (!userId) {
+        return callback({
+          success: false,
+          message: "Falta el ID del usuario"
+        });
+      }
+      // Buscar y actualizar el usuario
+      const usuarioActualizado = await Usuario.findByIdAndUpdate(
+        userId,
+        { Tipo_empresa: true },
+        { new: true } // devuelve el documento actualizado
+      );
+      // Verificar si el usuario existe
+      if (!usuarioActualizado) {
+        return callback({
+          success: false,
+          message: "Usuario no encontrado"
+        });
+      }
+      // Responder al cliente
+      callback({
+        success: true,
+        message: "Usuario actualizado a tipo empresa",
+        usuario: usuarioActualizado
+      });
+
+    } catch (error) {
+      console.error("Error al registrar empresa:", error);
+      callback({
+        success: false,
+        message: "Error al registrar empresa"
+      });
+    }
+  });
+  // Muestra en el menu principal las empresas que tenemos en la BD
+  socket.on("listar_negocios", async (data, callback) => {
+    try {
+      const negocios = await Negocio.find({ publico: true })
+      if (callback) {
+        callback({ negocios })
+      }
+    } catch (err) {
+      console.error("Error al listar negocios:", err)
+      if (callback) {
+        callback({ error: "Error interno del servidor" })
+      }
+    }
+  })
+
+
+
+  // -------------------
+  // Card = Negocio / Servicio
+  // * Menu de empresa en el frontend * 
+  // -------------------
+  // Crear Negocio
+
   socket.on("crear_negocio", async (data, callback) => {
     console.log("Datos para comprobar: ",data)
     try {
       // Validación mínima (opcional pero recomendable)
-      if (!data.username || !data.departamento || !data.ciudad) {
+      if (!data.Nombre_N || !data.departamento || !data.ciudad) {
         return callback({
           success: false,
           message: "Faltan campos obligatorios"
         });
       }
-
       // Crear una instancia del modelo con los datos recibidos y el usuario del socket
       const nuevoNegocio = new Negocio({
-        Nombre_N: data.username,
-        url_i: data.url_imagen || '', // Por si no envían imagen
+        Nombre_N: data.Nombre_N,
+        url_i: data.url_i  || '', // Por si no envían imagen
         Departamento: data.departamento,
         Ciudad: data.ciudad,
         usuario: data.usuario      // Referencia al usuario autenticado
@@ -132,38 +194,6 @@ io.on("connect", (socket) => {
       });
     }
   });
-  // Muestra en el menu principal las empresas que tenemos en la BD
-  socket.on("listar_negocios", async (data, callback) => {
-    try {
-      const negocios = await Negocio.find()
-      if (callback) {
-        callback({ negocios })
-      }
-    } catch (err) {
-      console.error("Error al listar negocios:", err)
-      if (callback) {
-        callback({ error: "Error interno del servidor" })
-      }
-    }
-  })
-
-
-
-  // -------------------
-  // Card = Negocio / Servicio
-  // * Menu de empresa en el frontend * 
-  // -------------------
-  // Crear Negocio
-  socket.on("crear_card", async ({ nombre, fecha, imagenURL }, callback) => {
-    try {
-      const nuevaCard = new card({ Nombre_S: nombre, fecha, Imagen: imagenURL });
-      await nuevaCard.save();
-      callback({ success: true, cardId: nuevaCard._id });
-    } catch (error) {
-      console.error(error);
-      callback({ success: false, message: "Error al crear card" });
-    }
-  });
   // Lista los Negocios
   socket.on("solicitar_cards", async (callback) => {
     try {
@@ -177,9 +207,11 @@ io.on("connect", (socket) => {
       console.log(negocios)
       callback({  
         cards: negocios.map(n => ({
-          id: n._id,
-          title: n.Nombre_N,
-          imagenURL: n.url_i,
+          id: n._id,                     // 👈 importante
+          Nombre_N: n.Nombre_N,
+          url_i: n.url_i,
+          Departamento: n.Departamento,
+          Ciudad: n.Ciudad,
           servicios: n.servicios
         }))
       });
@@ -194,18 +226,14 @@ io.on("connect", (socket) => {
     try {
       const { negocioId } = data;
       console.log("Datos recibidos para eliminar negocio:", data);
-
       if (!negocioId) {
         return callback({ success: false, message: "ID del negocio no proporcionado" });
       }
-
       // Intentar eliminar el negocio
       const resultado = await Negocio.findByIdAndDelete(negocioId);
-
       if (!resultado) {
         return callback({ success: false, message: "Negocio no encontrado" });
       }
-
       callback({ success: true, message: "Negocio eliminado con éxito" });
     } catch (err) {
       console.error("Error al eliminar negocio:", err);
@@ -213,7 +241,58 @@ io.on("connect", (socket) => {
     }
   });
   // Editar los Negocios
-  // -------------------  
+  socket.on("editar_negocio", async (data, callback) => {
+    console.log("🛠️ Datos para editar negocio:", data);
+
+    try {
+      if (!data.negocioId) {
+        return callback({
+          success: false,
+          message: "Falta el ID del negocio"
+        });
+      }
+
+      // 🔹 Construir objeto de actualización solo con campos válidos
+      const camposActualizables = {};
+
+      if (data.Nombre_N?.trim()) camposActualizables.Nombre_N = data.Nombre_N;
+      if (data.url_i?.trim()) camposActualizables.url_i = data.url_i;
+      if (data.departamento?.trim()) camposActualizables.Departamento = data.departamento;
+      if (data.ciudad?.trim()) camposActualizables.Ciudad = data.ciudad;
+      if (typeof data.visible === "boolean") camposActualizables.visible = data.visible;
+      if (Array.isArray(data.servicios)) camposActualizables.servicios = data.servicios;
+      if (typeof data.publico === 'boolean') camposActualizables.publico = data.publico;
+
+      // ⚙️ Ejecutar actualización
+      const negocioActualizado = await Negocio.findByIdAndUpdate(
+        data.negocioId,
+        { $set: camposActualizables },
+        { new: true }
+      );
+
+      if (!negocioActualizado) {
+        return callback({
+          success: false,
+          message: "Negocio no encontrado"
+        });
+      }
+
+      console.log("✅ Negocio actualizado:", negocioActualizado.Nombre_N);
+
+      callback({
+        success: true,
+        message: "Negocio actualizado correctamente",
+        negocio: negocioActualizado
+      });
+
+    } catch (error) {
+      console.error("❌ Error al editar negocio:", error);
+      callback({
+        success: false,
+        message: "Error interno al editar negocio"
+      });
+    }
+  });
 
   // Obtener servicios de un negocio
   socket.on("obtener_servicios", async ({ negocioId }, callback) => {

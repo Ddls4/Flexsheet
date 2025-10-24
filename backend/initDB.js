@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 import Usuario from "./Sockets/usuario.js";
 import Negocio from "./Sockets/negocio.js";
-import Card from "./Sockets/card.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();

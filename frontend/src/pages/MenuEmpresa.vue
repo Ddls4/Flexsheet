@@ -60,8 +60,7 @@
             <q-btn
               color="secondary"
               class="text-white"
-              @click="editarCard"
-              disable
+              @click="abrirDialogoEdicion(cards[selectedCardIndex])"
               icon="edit"
               style="width: 100%; min-height: 42px;"
               rounded
@@ -120,25 +119,24 @@
       </div>
     </div>
 
-    <!-- Dialog Cracion -->
+    <!-- Dialog Cracion Negocio -->
     <q-dialog v-model="showCreateDialog" persistent> 
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6"> Agregar Producto </div>
+          <div class="text-h6"> Crear Negocio </div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input dense v-model="form.nombre"     placeholder="Nombre" />
-          <q-input dense v-model="form.imagen"  placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
-          <q-input dense v-model="form.descripcion"  placeholder="Descripcion" />
-          <q-input dense v-model="form.precio"  placeholder="Precio" />
-          <q-input dense v-model="form.titulo"  placeholder="Titulo" />
+          <q-input dense v-model="form.Nombre_N"     placeholder="Nombre" />
+          <q-input dense v-model="form.url_i"  placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
+          <q-input dense v-model="form.departamento"  placeholder="departamento" />
+          <q-input dense v-model="form.ciudad"  placeholder="ciudad" />
         </q-card-section>
 
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Cancel" icon-right="cancel" v-close-popup />
-          <q-btn flat label="Agregar" icon-right="add" type="submit" @click="agregarProducto" v-close-popup />
+          <q-btn flat label="Agregar" icon-right="add" type="submit" @click="crear_negocio"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -155,6 +153,35 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <!-- Dialog Editar Negocio -->
+    <q-dialog v-model="showEditDialog" persistent>
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Editar Negocio</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input dense v-model="editForm.Nombre_N" placeholder="Nombre del Negocio" />
+          <q-input dense v-model="editForm.url_i" placeholder="URL Imagen" />
+          <q-input dense v-model="editForm.departamento" placeholder="Departamento" />
+          <q-input dense v-model="editForm.ciudad" placeholder="Ciudad" />
+          <div class="q-mt-sm">
+            <q-checkbox 
+              v-model="editForm.publico" 
+              label="Visible al público"
+              color="green"
+            />
+          </div>
+        </q-card-section>
+
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancelar" icon-right="cancel" v-close-popup />
+          <q-btn flat label="Guardar" icon-right="save" color="primary" @click="editar_negocio" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Drawer de Servicios -->
     <q-dialog v-model="showDrawer" persistent transition-show="scale" transition-hide="scale">
       <q-card class="bg-blue-grey-10 text-white" style="min-width: 400px; max-width: 90vw; max-height: 90vh;">
@@ -218,6 +245,7 @@
 
   // separar el Script en dos Negocios / Servicios y doc cada una
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = storedUser.id || '';
   // socket 
   const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
     auth: {
@@ -230,13 +258,23 @@
   const router = useRouter()
   const showCreateDialog = ref(false);
   const showConfirmDialog = ref(false);
-  const form= reactive({
-    nombre: '',
-    imagen: '',
-    descripcion: '',
-    precio: '',
-    titulo: ''
+  const showEditDialog = ref(false)
+  const form= ref({
+    Nombre_N: '',
+    url_i: '',
+    departamento: '',
+    ciudad: '',
+    usuario: userId,
+    
   })
+  const editForm = ref({
+    negocioId: '',
+    Nombre_N: '',
+    url_i: '',
+    departamento: '',
+    ciudad: '',
+    publico: false
+  });
   const cards = ref([]);
   const newCard = ref({title: '',imagenURL: ''});
   const selectedCardIndex = ref(null);
@@ -244,6 +282,7 @@
   const showDrawer = ref(false)
   const negocioSeleccionado = ref(null)
   const servicios = ref([])
+  const mensaje = ref('')
 
   // Variables Servicios
   const showServicioDialog = ref(false)
@@ -272,10 +311,13 @@
           reject(response.error);
         } else {
           cards.value = response.cards.map(card => ({
-            id: card.id,
-            title: card.title,
+            id: card._id || card.id,
+            title: card.Nombre_N || card.title,
             imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
-            servicios: card.servicios || []
+            departamento: card.Departamento,
+            ciudad: card.Ciudad,
+            servicios: card.servicios || [],
+            publico: card.visible
           }));
           resolve(response.cards);
         }
@@ -285,23 +327,66 @@
     });
   };
   // Agregamos un Negocio
-  function agregarProducto() {
-    if (!form.value.nombre || !form.value.imagen || !form.value.precio) {
+
+  function crear_negocio() {
+    if (!form.value.Nombre_N || !form.value.departamento || !form.value.ciudad) {
       alert('Completa los campos obligatorios');
       return;
     }
 
-    productos.value.push({ ...form.value });
-    // Reset form
-    form.value = {
-      nombre: '',
-      titulo: '',
-      imagen: '',
-      precio: '',
-      descripcion: ''
-    };
-    dialog.value = false;
+    socket.emit('crear_negocio', form.value, (response)=>{
+      if (response.success){
+        mensaje.value = 'Negocio registrado con éxito'
+        showCreateDialog.value = false;
+      } else{
+        mensaje.value = response.message || 'Error al registrar Enpresa'
+      }
+    });
+
   }
+  // Editar
+  function abrirDialogoEdicion(negocio) {
+    const negocioId = negocio.id || negocio._id;
+    editForm.value = {
+      negocioId,
+      Nombre_N: negocio.title || negocio.Nombre_N,
+      url_i: negocio.imagenURL || negocio.url_i,
+      departamento: negocio.departamento || '',
+      ciudad: negocio.ciudad || '',
+      publico: negocio.publico || false
+    };
+    showEditDialog.value = true;
+  }
+  // Editar - Guardar cambios
+  function editar_negocio() {
+    if (!editForm.value.negocioId) {
+      alert("Falta el ID del negocio");
+      return;
+    }
+
+    socket.emit("editar_negocio", editForm.value, (response) => {
+      if (response.success) {
+        mensaje.value = "✅ Negocio actualizado correctamente";
+        showEditDialog.value = false;
+
+        // Actualizar el negocio en el array local (sin recargar)
+        const index = cards.value.findIndex(c => c.id === editForm.value.negocioId);
+        if (index !== -1) {
+          cards.value[index] = {
+            ...cards.value[index],
+            title: editForm.value.Nombre_N,
+            imagenURL: editForm.value.url_i,
+            departamento: editForm.value.departamento,
+            ciudad: editForm.value.ciudad,
+            publico: editForm.value.publico
+          };
+        }
+      } else {
+        mensaje.value = response.message || "❌ Error al actualizar el negocio";
+      }
+    });
+  }
+
   // Modo Selecionar 
   const toggleSelectionMode = () => {
       selectionMode.value = !selectionMode.value;
