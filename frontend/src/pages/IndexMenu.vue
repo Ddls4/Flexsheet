@@ -151,16 +151,19 @@
 
 
 <script setup>
-import { ref, computed, inject, onMounted } from 'vue'
-import { io } from 'socket.io-client'
+import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
-const socket = io(`http://${import.meta.env.VITE_P_IP}:80`) // Cambiar según tu backend
+
+// === Usar socket inyectado en lugar de crear uno nuevo ===
+const socket = inject('socket')
+const socketConnected = inject('socketConnected')
 
 // === Carrito compartido ===
 const shoppingCart = inject('shoppingCart')
 if (!shoppingCart) throw new Error('❌ No se encontró el carrito (shoppingCart)')
+if (!socket) throw new Error('❌ No se encontró el socket')
 
 // === Estados ===
 const cards = ref([])                // Negocios disponibles
@@ -177,7 +180,7 @@ const showDate = ref(false)
 const showTime = ref(false)
 
 const displayText = computed(() => {
-  const { from, to } = filters.value.dateRange
+  const { from, to } = filters.value.dateRange || {}
   const time = filters.value.time
   if (from && to && time) return `Desde ${from} hasta ${to} a las ${time}`
   if (from && to) return `Desde ${from} hasta ${to} (sin hora)`
@@ -192,9 +195,6 @@ const ciudad = ref(null)
 const precio = ref(null)
 
 const precios = ref(['< $1000', '$1000 - $5000', '> $5000'])
-
-
-// 
 
 const ciudadesPorDepartamento = {
   'Artigas': ['Artigas', 'Bella Unión', 'Tomás Gomensoro'],
@@ -222,21 +222,27 @@ const ciudades = computed(() => {
   return departamento.value ? ciudadesPorDepartamento[departamento.value] : [];
 });
 
-
 // === Funciones ===
 
-
 // Cargar todos los negocios
-
 const cargarNegocios = () => {
-  socket.emit("listar_negocios", null, (data) => {
+  if (!socket.value || !socketConnected.value) {
+    console.warn('⚠️ Socket no conectado, no se pueden cargar negocios')
+    $q.notify({ type: "warning", message: "Esperando conexión..." })
+    return
+  }
+
+  console.log('📡 Solicitando negocios con socket autenticado...')
+  socket.value.emit("listar_negocios", null, (data) => {
     if (data.negocios) {
       cards.value = data.negocios
-      console.log("Negocios cargados:", data.negocios)
-    }else $q.notify({ type: "negative", message: data.error || "Error al obtener negocios" })
+      console.log("✅ Negocios cargados:", data.negocios)
+    } else {
+      console.error("❌ Error al cargar negocios:", data.error)
+      $q.notify({ type: "negative", message: data.error || "Error al obtener negocios" })
+    }
   })
 }
-
 
 // Manejar click en un negocio
 const cardClicked = (card) => {
@@ -260,7 +266,20 @@ const toggleProductSelection = (product, selected) => {
 
 // === Lifecycle ===
 onMounted(() => {
-  cargarNegocios()
+  // Esperar a que el socket esté conectado
+  if (socketConnected.value) {
+    cargarNegocios()
+  } else {
+    console.log('⏳ Socket no conectado, esperando...')
+  }
+})
+
+// Watcher para cuando el socket se conecte
+watch(socketConnected, (newVal) => {
+  if (newVal) {
+    console.log('🔗 Socket conectado, cargando negocios...')
+    cargarNegocios()
+  }
 })
 </script>
 

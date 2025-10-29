@@ -23,8 +23,6 @@
                     </q-input>
                 </q-card-section>
 
-                
-
                 <q-card-actions class="flex justify-around items-center" style="padding: 16px;">
                     <q-btn @click="LoginUser" label="Login" rounded  color="blue-grey-10" style="width: 200px;" />
                      <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
@@ -32,39 +30,53 @@
             </q-card>
         </div>
     </q-page>
-
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeUnmount, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { io } from 'socket.io-client'
 
+const router = useRouter()
 const isPwd = ref(true)
 const form = ref({ username: '', password: '' })
 const mensaje = ref('')
-
-// Inicializa socket pero no conectes todavía
-const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
-  withCredentials: true,
-  autoConnect: false // Controlamos manualmente la conexión
-})
+const socket = ref(null)
 
 const LoginUser = () => {
-  if (!socket.connected) {
-    socket.connect();
-  }
+    socket.value = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+        reconnection: false,
+        timeout: 10000
+    })
 
-  socket.emit('login', form.value, (response) => {
-    if (response.success) {
-      // Guardar usuario en localStorage
-      localStorage.setItem('user', JSON.stringify(response.user));
+    socket.value.on('connect', () => {
+        console.log('✅ Socket conectado para login')
+        
+        socket.value.emit('login', form.value, (response) => {
+            console.log('Respuesta del login:', response)
+            
+            if (response.success) {
+                localStorage.setItem('token', response.token)
+                localStorage.setItem('user', JSON.stringify(response.user))
+                
+                // 🔄 FORZAR RECARGA para que MainLayout se reconecte
+                window.location.href = '/'
+            } else {
+                mensaje.value = response.message || 'Error al logear'
+                socket.value.disconnect()
+            }
+        })
+    })
 
-      // Redirigir
-      window.location.href = '/';
-    } else {
-      mensaje.value = response.message || 'Error al logear';
-      console.error("Error en login:", response.message);
+    socket.value.on('connect_error', (error) => {
+        console.error('❌ Error conectando socket:', error)
+        mensaje.value = 'Error de conexión con el servidor'
+    })
+}
+
+onBeforeUnmount(() => {
+    if (socket.value) {
+        socket.value.disconnect()
     }
-  });
-};
+})
 </script>

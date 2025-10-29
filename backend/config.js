@@ -1,20 +1,32 @@
 import express from "express";
-import session from "express-session";
 import cors from "cors";
+import morgan from "morgan";
 import { fileURLToPath } from "url";
 import path from "path";
 import { config } from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import morgan from "morgan";
+// JWT
+import jwt from "jsonwebtoken";
+import protectedRoutes from "./JWT/protectedRoutes.js";
+import { verifySocketJWT } from "./JWT/authMiddleware.js";
+import passport from "./JWT/passport.js";
+
+
+config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const servidor = express();
 const httpServer = createServer(servidor);
-config();
 
+servidor.use(cors({
+  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
+  credentials: true
+}));
+
+// --- Middlewares ---
 servidor.use(morgan("dev"));
 servidor.use(express.json());
 servidor.use(express.urlencoded({ extended: true }));
@@ -25,35 +37,28 @@ servidor.use((req, res, next) => {
     next();
 });
 
-servidor.use(cors({
-  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
-  credentials: true
-}));
-
-const sessionMiddleware = session({
-  secret: "secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, maxAge: 86400000, sameSite: 'lax' } 
-});
- servidor.use(sessionMiddleware);
 
 
 const io = new Server(httpServer, {
   cors: {
-    origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,  // *
+    origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
   },
 });
- io.use((socket, next) => {
-  sessionMiddleware(socket.request, {}, next);
-});
-io.use((socket, next) => {
-  // Guardar referencia de la sesión en el socket
-  socket.session = socket.request.session;
-  next();
+// --- Passport inicializado ---
+servidor.use(passport.initialize());
+
+// --- Rutas ---
+servidor.use("/api", protectedRoutes);
+// --- Socket.IO con JWT ---
+io.on("connection", (socket) => {
+  console.log("Usuario conectado:", socket.user?.nombre || "anónimo");
+
+  socket.on("mensaje", (data) => {
+    console.log(`Mensaje de ${socket.user.nombre}:`, data);
+  });
 });
 
 // Iniciar servidor

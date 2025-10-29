@@ -1,7 +1,9 @@
+// Ese fragmento es la configuración de Passport.js para manejar el 
+// inicio de sesión local (usuario + contraseña)
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
-import Usuario from "../models/Usuario.js";
+import Usuario from "../Sockets/Usuario_S.js";
 
 passport.use(
   new LocalStrategy(
@@ -23,3 +25,8 @@ passport.use(
 );
 
 export default passport;
+
+// En resumen
+// Define cómo se valida un usuario con usuario/contraseña.
+// Usa bcrypt para comparar contraseñas seguras.
+// Integra la estrategia en Passport.

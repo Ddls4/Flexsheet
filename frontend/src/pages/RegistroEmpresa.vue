@@ -43,15 +43,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { io } from 'socket.io-client'
+import { ref, inject } from 'vue'
+
+// === Usar socket inyectado en lugar de crear uno nuevo ===
+const socket = inject('socket')
+const socketConnected = inject('socketConnected')
 
 // Obtener usuario del localStorage
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
 const userId = storedUser.id || '';
-
-// Conectar con el backend
-const socket = io(`http://${import.meta.env.VITE_P_IP}:80`);
 const mensaje = ref('');
 
 // Función para confirmar la transformación de cuenta
@@ -61,10 +61,19 @@ const confirmarTransformacion = () => {
     return;
   }
 
+  // Verificar que el socket esté conectado y autenticado
+  if (!socket?.value || !socketConnected?.value) {
+    mensaje.value = "Error: No hay conexión con el servidor.";
+    return;
+  }
+
   if (confirm("¿Seguro que quieres convertir tu cuenta en una cuenta de empresa?")) {
-    socket.emit('RegistroEmpresa', { userId }, (response) => {
+    socket.value.emit('RegistroEmpresa', { userId }, (response) => {
       if (response.success) {
         mensaje.value = "✅ Tu cuenta ahora es una cuenta de empresa.";
+        // Opcional: Actualizar localStorage si es necesario
+        storedUser.tipo_empresa = true;
+        localStorage.setItem('user', JSON.stringify(storedUser));
       } else {
         mensaje.value = response.message || "❌ Error al actualizar tu cuenta.";
       }
@@ -72,6 +81,15 @@ const confirmarTransformacion = () => {
   }
 };
 </script>
+
+<template>
+  <div>
+    <button @click="confirmarTransformacion">
+      Convertir a Cuenta Empresa
+    </button>
+    <p v-if="mensaje">{{ mensaje }}</p>
+  </div>
+</template>
 
 <style scoped>
 p {

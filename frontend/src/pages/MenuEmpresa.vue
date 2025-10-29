@@ -75,29 +75,6 @@
       <div class="col-12 col-md-9 col-lg-10">
         <!-- Card /tabla -->
         <div class="row q-col-gutter-md" style="margin: 5px;"> 
-          
-          <div class="q-mt-lg">
-              <div v-for="(item, index) in productos" :key="index" class="row q-mb-md">
-                <div class="col-6">
-                    <q-card>
-                      <q-card-section>
-                        <div class="text-subtitle1">{{ item.nombre }}</div>
-                        <q-img :src="item.imagen" :alt="item.nombre" class="q-my-sm" style="max-height: 150px;" />
-                        <div class="text-h6 text-primary">${{ item.precio }}</div>
-                      </q-card-section>
-                    </q-card>
-                </div>
-                <div class="col-6">
-                    <q-card>
-                      <q-card-section>
-                        <div class="text-subtitle2">{{ item.titulo }}</div>
-                        <div>{{ item.descripcion }}</div>
-                      </q-card-section>
-                    </q-card>
-                </div>
-              </div>
-          </div>
-
           <div v-for="(card, index) in cards" :key="index" class="col-6 col-sm-3 col-md-2 col-lg-1">
             <q-card style="max-width: 200px;" class="cursor-pointer"  :class="{ 'border-primary': selectedCardIndex === index && selectionMode, 'border': true  }"
             @click="cardClicked(index)">
@@ -239,292 +216,312 @@
 </template>
 
 <script setup>
-  import { reactive, ref, onMounted } from 'vue';
-  import { useRouter } from 'vue-router'
-  import { io } from "socket.io-client";
+import { reactive, ref, onMounted, inject } from 'vue';
+import { useRouter } from 'vue-router'
 
-  // separar el Script en dos Negocios / Servicios y doc cada una
-  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const userId = storedUser.id || '';
-  // socket 
-  const socket = io(`http://${import.meta.env.VITE_P_IP}:80`, {
-    auth: {
-      userId: storedUser.id
-    },
-    withCredentials: true,
-    autoConnect: false
-  });
-  // Variables Negocios
-  const router = useRouter()
-  const showCreateDialog = ref(false);
-  const showConfirmDialog = ref(false);
-  const showEditDialog = ref(false)
-  const form= ref({
-    Nombre_N: '',
-    url_i: '',
-    departamento: '',
-    ciudad: '',
-    usuario: userId,
-    
-  })
-  const editForm = ref({
-    negocioId: '',
-    Nombre_N: '',
-    url_i: '',
-    departamento: '',
-    ciudad: '',
-    publico: false
-  });
-  const cards = ref([]);
-  const newCard = ref({title: '',imagenURL: ''});
-  const selectedCardIndex = ref(null);
-  const selectionMode = ref(false);
-  const showDrawer = ref(false)
-  const negocioSeleccionado = ref(null)
-  const servicios = ref([])
-  const mensaje = ref('')
+// === Usar socket inyectado en lugar de crear uno nuevo ===
+const socket = inject('socket')
+const socketConnected = inject('socketConnected')
 
-  // Variables Servicios
-  const showServicioDialog = ref(false)
-  const modoEdicion = ref(false)
-  const formServicio = ref({
+const router = useRouter()
+const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+const userId = storedUser.id || '';
+
+// Variables Negocios
+const showCreateDialog = ref(false);
+const showConfirmDialog = ref(false);
+const showEditDialog = ref(false)
+const form = ref({
+  Nombre_N: '',
+  url_i: '',
+  departamento: '',
+  ciudad: '',
+  usuario: userId,
+})
+const editForm = ref({
+  negocioId: '',
+  Nombre_N: '',
+  url_i: '',
+  departamento: '',
+  ciudad: '',
+  publico: false
+});
+const cards = ref([]);
+const selectedCardIndex = ref(null);
+const selectionMode = ref(false);
+const showDrawer = ref(false)
+const negocioSeleccionado = ref(null)
+const servicios = ref([])
+const mensaje = ref('')
+
+// Variables Servicios
+const showServicioDialog = ref(false)
+const modoEdicion = ref(false)
+const formServicio = ref({
+  titulo: '',
+  descripcion: '',
+  precio: '',
+  imagenURL: ''
+})
+let servicioEditIndex = null
+
+// -- Funciones Negocios --
+
+// Verificar conexión antes de cualquier operación
+const verificarConexion = () => {
+  if (!socket?.value || !socketConnected?.value) {
+    mensaje.value = "Error: No hay conexión con el servidor";
+    return false;
+  }
+  return true;
+}
+
+// Carga los Negocio para verlos  
+const fetchUserCards = async () => {
+  if (!verificarConexion()) return;
+
+  socket.value.emit("solicitar_cards", (response) => {
+    if (response.error) {
+      console.error("Error:", response.error);
+      if (response.error === "No autorizado") {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/login');
+      }
+    } else {
+      cards.value = response.cards.map(card => ({
+        id: card._id || card.id,
+        title: card.Nombre_N || card.title,
+        imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
+        departamento: card.Departamento,
+        ciudad: card.Ciudad,
+        servicios: card.servicios || [],
+        publico: card.publico || false
+      }));
+    }
+  });
+};
+
+// Agregamos un Negocio
+function crear_negocio() {
+  if (!verificarConexion()) return;
+  
+  if (!form.value.Nombre_N || !form.value.departamento || !form.value.ciudad) {
+    alert('Completa los campos obligatorios');
+    return;
+  }
+
+  socket.value.emit('crear_negocio', form.value, (response) => {
+    if (response.success) {
+      mensaje.value = 'Negocio registrado con éxito'
+      showCreateDialog.value = false;
+      fetchUserCards(); // Recargar la lista
+    } else {
+      mensaje.value = response.message || 'Error al registrar Empresa'
+    }
+  });
+}
+
+// Editar
+function abrirDialogoEdicion(negocio) {
+  if (!negocio) {
+    alert("Selecciona un negocio primero");
+    return;
+  }
+  
+  const negocioId = negocio.id || negocio._id;
+  editForm.value = {
+    negocioId,
+    Nombre_N: negocio.title || negocio.Nombre_N,
+    url_i: negocio.imagenURL || negocio.url_i,
+    departamento: negocio.departamento || '',
+    ciudad: negocio.ciudad || '',
+    publico: negocio.publico || false
+  };
+  showEditDialog.value = true;
+}
+
+// Editar - Guardar cambios
+function editar_negocio() {
+  if (!verificarConexion()) return;
+  
+  if (!editForm.value.negocioId) {
+    alert("Falta el ID del negocio");
+    return;
+  }
+
+  socket.value.emit("editar_negocio", editForm.value, (response) => {
+    if (response.success) {
+      mensaje.value = "✅ Negocio actualizado correctamente";
+      showEditDialog.value = false;
+      fetchUserCards(); // Recargar la lista
+    } else {
+      mensaje.value = response.message || "❌ Error al actualizar el negocio";
+    }
+  });
+}
+
+// Modo Selecionar 
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value;
+  selectedCardIndex.value = null;
+};
+
+// Confirmar Eliminar
+const confirmarEliminar = () => {
+  eliminarNegocioSeleccionado();
+  showConfirmDialog.value = false;
+};
+
+// Eliminar el Negocio Selecionado
+const eliminarNegocioSeleccionado = () => {
+  if (!verificarConexion()) return;
+  
+  if (selectedCardIndex.value === null) {
+    alert("Selecciona un negocio primero");
+    return;
+  }
+
+  const negocio = cards.value[selectedCardIndex.value];
+  if (!confirm(`¿Seguro que quieres eliminar el negocio "${negocio.title}"?`)) return;
+
+  socket.value.emit("eliminar_negocio", { negocioId: negocio.id }, (res) => {
+    if (res.success) {
+      cards.value.splice(selectedCardIndex.value, 1);
+      selectedCardIndex.value = null;
+      alert("Negocio eliminado con éxito");
+    } else {
+      alert(res.message || "Error al eliminar negocio");
+    }
+  });
+}; 
+
+// Negocio Clickeado
+const cardClicked = (index) => {
+  if (selectionMode.value) {
+    selectedCardIndex.value = selectedCardIndex.value === index ? null : index;
+    return;
+  }
+  
+  const card = cards.value[index];
+  negocioSeleccionado.value = card;
+  showDrawer.value = true;
+
+  if (!verificarConexion()) return;
+
+  socket.value.emit("obtener_servicios", { negocioId: card.id }, (response) => {
+    if (response.success) {
+      servicios.value = response.servicios;
+    } else {
+      console.error(response.message);
+    }
+  });
+}
+
+// onMounted
+onMounted(() => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
+  
+  if (!user || !token) {
+    router.push('/login');
+    return;
+  }
+
+  // Esperar a que el socket se conecte si es necesario
+  if (socketConnected?.value) {
+    fetchUserCards();
+  } else {
+    console.log('⏳ Esperando conexión del socket...');
+    // Podrías agregar un watcher aquí si es necesario
+  }
+});
+
+// -- Funciones Servicios --
+
+// Abrir el dialog de agregar servicio 
+const abrirFormularioAgregarServicio = () => {
+  if (!verificarConexion()) return;
+  
+  modoEdicion.value = false;
+  formServicio.value = {
     titulo: '',
     descripcion: '',
     precio: '',
     imagenURL: ''
-  })
-  let servicioEditIndex = null
-
-  // -- Funciones Negocios --
-
-  // Carga los Negocio para verlos  
-  const fetchUserCards = async () => {
-    // Usar Promise para manejar la respuesta
-    new Promise((resolve, reject) => {
-      socket.emit("solicitar_cards", (response) => {
-        if (response.error) {
-          console.error("Error:", response.error);
-          if (response.error === "No autorizado") {
-            localStorage.removeItem('user');
-            router.push('/login');
-          }
-          reject(response.error);
-        } else {
-          cards.value = response.cards.map(card => ({
-            id: card._id || card.id,
-            title: card.Nombre_N || card.title,
-            imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
-            departamento: card.Departamento,
-            ciudad: card.Ciudad,
-            servicios: card.servicios || [],
-            publico: card.visible
-          }));
-          resolve(response.cards);
-        }
-      });
-    }).catch(error => {
-      console.error("Error al obtener cards:", error);
-    });
   };
-  // Agregamos un Negocio
+  showServicioDialog.value = true;
+}
 
-  function crear_negocio() {
-    if (!form.value.Nombre_N || !form.value.departamento || !form.value.ciudad) {
-      alert('Completa los campos obligatorios');
-      return;
-    }
+// Edita los Servicios
+const editarServicio = (index) => {
+  if (!verificarConexion()) return;
+  
+  modoEdicion.value = true;
+  servicioEditIndex = index;
+  formServicio.value = { ...servicios.value[index] };
+  showServicioDialog.value = true;
+}
 
-    socket.emit('crear_negocio', form.value, (response)=>{
-      if (response.success){
-        mensaje.value = 'Negocio registrado con éxito'
-        showCreateDialog.value = false;
-      } else{
-        mensaje.value = response.message || 'Error al registrar Enpresa'
+// Guarda los cambios Cuando Creas o Editas
+const guardarServicio = () => {
+  if (!verificarConexion()) return;
+  
+  if (!formServicio.value.titulo || !formServicio.value.precio) {
+    alert('Título y precio son obligatorios');
+    return;
+  }
+
+  if (modoEdicion.value) {
+    // Actualizar servicio existente
+    socket.value.emit('editar_servicio', {
+      negocioId: negocioSeleccionado.value.id,
+      servicio: {
+        ...formServicio.value,
+        _id: servicios.value[servicioEditIndex]._id
       }
-    });
-
-  }
-  // Editar
-  function abrirDialogoEdicion(negocio) {
-    const negocioId = negocio.id || negocio._id;
-    editForm.value = {
-      negocioId,
-      Nombre_N: negocio.title || negocio.Nombre_N,
-      url_i: negocio.imagenURL || negocio.url_i,
-      departamento: negocio.departamento || '',
-      ciudad: negocio.ciudad || '',
-      publico: negocio.publico || false
-    };
-    showEditDialog.value = true;
-  }
-  // Editar - Guardar cambios
-  function editar_negocio() {
-    if (!editForm.value.negocioId) {
-      alert("Falta el ID del negocio");
-      return;
-    }
-
-    socket.emit("editar_negocio", editForm.value, (response) => {
-      if (response.success) {
-        mensaje.value = "✅ Negocio actualizado correctamente";
-        showEditDialog.value = false;
-
-        // Actualizar el negocio en el array local (sin recargar)
-        const index = cards.value.findIndex(c => c.id === editForm.value.negocioId);
-        if (index !== -1) {
-          cards.value[index] = {
-            ...cards.value[index],
-            title: editForm.value.Nombre_N,
-            imagenURL: editForm.value.url_i,
-            departamento: editForm.value.departamento,
-            ciudad: editForm.value.ciudad,
-            publico: editForm.value.publico
-          };
-        }
-      } else {
-        mensaje.value = response.message || "❌ Error al actualizar el negocio";
-      }
-    });
-  }
-
-  // Modo Selecionar 
-  const toggleSelectionMode = () => {
-      selectionMode.value = !selectionMode.value;
-      selectedCardIndex.value = null; // limpiar selección cuando cambie el modo
-  };
-  // Confirmar Eliminar
-  const confirmarEliminar = () => {
-      eliminarNegocioSeleccionado();
-      showConfirmDialog.value = false;
-  };
-  // Eliminar el Negocio Selecionado
-  const eliminarNegocioSeleccionado = () => {
-    if (selectedCardIndex.value === null) return alert("Selecciona un negocio primero");
-
-    const negocio = cards.value[selectedCardIndex.value];
-
-    if (!confirm(`¿Seguro que quieres eliminar el negocio "${negocio.Nombre_N}"?`)) return;
-
-    socket.emit("eliminar_negocio", { negocioId: negocio.id }, (res) => {
+    }, (res) => {
       if (res.success) {
-        cards.value.splice(selectedCardIndex.value, 1);
-        selectedCardIndex.value = null;
-        alert("Negocio eliminado con éxito");
+        servicios.value[servicioEditIndex] = { ...formServicio.value };
+        showServicioDialog.value = false;
       } else {
-        alert(res.message || "Error al eliminar negocio");
+        alert(res.message || 'Error al actualizar el servicio');
       }
     });
-  }; 
-  // Negocio Clickeado
-  const cardClicked = (index) => {
-    // Si está en modo selección, no abrir el drawer
-    if (selectionMode.value) {
-      // Alternar selección (por si querés poder seleccionar varias o una sola)
-      selectedCardIndex.value = selectedCardIndex.value === index ? null : index
-      return // detener la ejecución aquí
-    }
-    const card = cards.value[index]
-    negocioSeleccionado.value = card
-    showDrawer.value = true
-
-    // Aquí podrías hacer un emit al backend para obtener los servicios del negocio
-    socket.emit("obtener_servicios", { negocioId: card.id }, (response) => {
-      if (response.success) {
-        servicios.value = response.servicios
+  } else {
+    // Agregar nuevo servicio
+    socket.value.emit('agregar_servicio', {
+      negocioId: negocioSeleccionado.value.id,
+      servicio: formServicio.value
+    }, (res) => {
+      if (res.success) {
+        servicios.value.push({ ...formServicio.value });
+        showServicioDialog.value = false;
       } else {
-        console.error(response.message)
+        alert(res.message || 'Error al agregar servicio');
       }
-    })
+    });
   }
-  // onMounted -> ver el user y llama a Carga los Negocio
-  onMounted(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      socket.connect();
-      fetchUserCards();
-    } else {
-      router.push('/login');
-    }
-  });
+}
 
-
-  // -- Funciones Servicios --
-
-  // Abrir el dialog de agregar servicio 
-  const abrirFormularioAgregarServicio = () => {
-    modoEdicion.value = false
-    formServicio.value = {
-      titulo: '',
-      descripcion: '',
-      precio: '',
-      imagenURL: ''
-    }
-    showServicioDialog.value = true
-  }
-  // Edita los Servicos
-  const editarServicio = (index) => {
-    modoEdicion.value = true
-    servicioEditIndex = index
-    formServicio.value = { ...servicios.value[index] }
-    showServicioDialog.value = true
-  }
-  // Guarda los cambios Cuando Creas o Editas
-  const guardarServicio = () => {
-    if (!formServicio.value.titulo || !formServicio.value.precio) {
-      alert('Título y precio son obligatorios')
-      return
-    }
-
-    if (modoEdicion.value) {
-      // Actualizar servicio existente
-      servicios.value[servicioEditIndex] = { ...formServicio.value }
-
-      socket.emit('editar_servicio', {
-        negocioId: negocioSeleccionado.value.id,
-        servicio: servicios.value[servicioEditIndex]
-      }, (res) => {
-        if (!res.success) {
-          alert('Error al actualizar el servicio')
-        }
-      })
-
-    } else {
-      // Agregar nuevo servicio
-      const nuevoServicio = { ...formServicio.value }
-
-      socket.emit('agregar_servicio', {
-        negocioId: negocioSeleccionado.value.id,
-        servicio: nuevoServicio
-      }, (res) => {
-        if (res.success) {
-          servicios.value.push(nuevoServicio)
-        } else {
-          alert('Error al agregar servicio')
-        }
-      })
-    }
-
-    showServicioDialog.value = false
-  }
-  // Elimina el Servico
-  const eliminarServicio = (servicioId) => {
+// Elimina el Servicio
+const eliminarServicio = (servicioId) => {
+  if (!verificarConexion()) return;
+  
   if (!confirm("¿Seguro que querés eliminar este servicio?")) return;
 
-  socket.emit("eliminar_servicio",{
-      negocioId: negocioSeleccionado.value.id,
-      servicioId: servicioId,
-    },
-    (res) => {
-      if (res.success) {
-        servicios.value = res.servicios; // actualizar la lista local
-        alert("Servicio eliminado con éxito");
-      } else {
-        alert(res.message || "Error al eliminar servicio");
-      }
+  socket.value.emit("eliminar_servicio", {
+    negocioId: negocioSeleccionado.value.id,
+    servicioId: servicioId,
+  }, (res) => {
+    if (res.success) {
+      servicios.value = res.servicios;
+      alert("Servicio eliminado con éxito");
+    } else {
+      alert(res.message || "Error al eliminar servicio");
     }
-  );
-  };
-
+  });
+};
 </script>
 
 <style>

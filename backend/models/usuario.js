@@ -1,4 +1,4 @@
-// backend/Sockets/usuario.js
+
 import mongoose from "mongoose";
 
 const usuarioSchema = new mongoose.Schema({
@@ -7,4 +7,4 @@ const usuarioSchema = new mongoose.Schema({
   Tipo_empresa: { type: Boolean, default: false }
 });
 
-export default mongoose.model("Usuario", usuarioSchema);
+export default mongoose.models.Usuario || mongoose.model("Usuario", usuarioSchema);

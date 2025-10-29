@@ -1,4 +1,4 @@
-// /Sockets/negocio.js
+
 import mongoose, { Schema } from "mongoose";
 
 const negocioSchema = new mongoose.Schema({

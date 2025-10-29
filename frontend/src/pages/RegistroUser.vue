@@ -29,32 +29,68 @@
                     <p v-if="mensaje" class="q-mb-none q-mt-none">{{ mensaje }}</p>
                 </q-card-actions>
 
-
             </q-card>
         </div>
     </q-page>
-
 </template>
 
 <script setup>
-    import { ref } from 'vue'
+    import { ref, onBeforeUnmount } from 'vue'
+    import { useRouter } from 'vue-router'
     import { io } from 'socket.io-client'
 
-    const socket = io(`http://${import.meta.env.VITE_P_IP}:80`)
+    const router = useRouter()
     const isPwd = ref(true)
     const form = ref({ username: '', password: ''  })
     const mensaje = ref('')
+    const socket = ref(null)
 
     const RegistrarUsuario = () => {
-    socket.emit('registrar', form.value, (response) => {
-        if (response.success) {
-        mensaje.value = 'Usuario registrado con éxito';
-        window.location.href = '/Login';
-        } else {
-        mensaje.value = response.message || 'Error al registrar usuario';
+        // Crear socket sin token (para registro)
+        socket.value = io(`http://${import.meta.env.VITE_P_IP}:80`, {
+            reconnection: false,
+            timeout: 10000
+        })
+
+        socket.value.on('connect', () => {
+            console.log('✅ Socket conectado para registro')
+            
+            // Emitir registro
+            socket.value.emit('registrar', form.value, (response) => {
+                console.log('Respuesta del registro:', response)
+                
+                if (response.success) {
+                    mensaje.value = 'Usuario registrado con éxito'
+                    
+                    // Guardar token y redirigir al login
+                    localStorage.setItem('token', response.token)
+                    localStorage.setItem('user', JSON.stringify(response.user))
+                    
+                    setTimeout(() => {
+                        router.push('/Login')
+                    }, 1500)
+                } else {
+                    mensaje.value = response.message || 'Error al registrar usuario'
+                }
+                
+                // Cerrar socket después del registro
+                socket.value.disconnect()
+            })
+        })
+
+        socket.value.on('connect_error', (error) => {
+            console.error('❌ Error conectando socket:', error)
+            mensaje.value = 'Error de conexión con el servidor'
+        })
+
+        socket.value.on('disconnect', () => {
+            console.log('🔌 Socket desconectado')
+        })
+    }
+
+    onBeforeUnmount(() => {
+        if (socket.value) {
+            socket.value.disconnect()
         }
-    });
-    };
-
-
+    })
 </script>
