@@ -1,0 +1,35 @@
+// login.js
+const login = async () => {
+  const res = await fetch("http://<IP_BACK>:<PORT>/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form.value),
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    localStorage.setItem("token", data.token);
+    window.location.href = "/";
+  } else {
+    mensaje.value = data.message;
+  }
+};
+
+// socket.js
+import { io } from "socket.io-client";
+
+const socket = io(`http://<IP_BACK>:<PORT>`, {
+  auth: { token: localStorage.getItem("token") },
+});
+
+socket.on("connect", () => {
+  console.log("Socket conectado como", socket.id);
+});
+
+
+⚙️ .env
+P_IP=localhost
+PORT=80
+PORT_W=9000
+JWT_SECRET=MiClaveSuperSecreta
+MONGO_URI=mongodb://localhost:27017/altashop
