@@ -26,10 +26,13 @@ export default function usuarioSockets(socket) {
   socket.on("registrar", async (data, callback) => {
     console.log("📨 Evento 'registrar' recibido:", data); // ← DEBUG
     try {
+      if (!data.password || data.password.length < 6 || data.password.length > 20) {
+        return callback({ success: false, message: "Contraseña inválida." });
+      }
       const usuarioExistente = await Usuario.findOne({ Nombre_U: data.username });
       console.log("🔍 Usuario existente:", usuarioExistente); // ← DEBUG
       if (usuarioExistente) {
-        return callback({ success: false, message: "El nombre de usuario ya está en uso" });
+        return callback({ success: false, message: "Usuario ya está en uso" });
       }
 
       const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -56,10 +59,20 @@ export default function usuarioSockets(socket) {
 
   socket.on("login", async (data, callback) => {
     try {
-      const user = await Usuario.findOne({ Nombre_U: data.username });
+      if (!data.password || data.password.length < 6 || data.password.length > 20) {
+        return callback({ success: false, message: "Contraseña inválida." });
+      }
+      const username = sanitize(data.username);
+      const password = sanitize(data.password);
+
+      if (typeof username !== 'string' || typeof password !== 'string') {
+        return callback({ success: false, message: "Datos inválidos" });
+      }
+
+      const user = await Usuario.findOne({ Nombre_U: username });
       if (!user) return callback({ success: false, message: "Usuario o contraseña incorrectos" });
 
-      const isMatch = await bcrypt.compare(data.password, user.Contraseña);
+      const isMatch = await bcrypt.compare(password, user.Contraseña);
       if (!isMatch) return callback({ success: false, message: "Usuario o contraseña incorrectos" });
 
       const token = generateToken({ id: user._id, nombre: user.Nombre_U });
