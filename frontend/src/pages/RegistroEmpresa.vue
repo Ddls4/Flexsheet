@@ -51,6 +51,7 @@ const socketConnected = inject('socketConnected')
 
 // Obtener usuario del localStorage
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+const token = localStorage.getItem('token');
 const userId = storedUser.id || '';
 const mensaje = ref('');
 
@@ -68,7 +69,7 @@ const confirmarTransformacion = () => {
   }
 
   if (confirm("¿Seguro que quieres convertir tu cuenta en una cuenta de empresa?")) {
-    socket.value.emit('RegistroEmpresa', { userId }, (response) => {
+    socket.value.emit('RegistroEmpresa', { token }, (response) => {
       if (response.success) {
         mensaje.value = "✅ Tu cuenta ahora es una cuenta de empresa.";
         // Opcional: Actualizar localStorage si es necesario
@@ -81,15 +82,6 @@ const confirmarTransformacion = () => {
   }
 };
 </script>
-
-<template>
-  <div>
-    <button @click="confirmarTransformacion">
-      Convertir a Cuenta Empresa
-    </button>
-    <p v-if="mensaje">{{ mensaje }}</p>
-  </div>
-</template>
 
 <style scoped>
 p {

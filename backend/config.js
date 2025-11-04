@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import helmet from "helmet";
 import { fileURLToPath } from "url";
 import path from "path";
 import { config } from "dotenv";
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename);
 
 const servidor = express();
 const httpServer = createServer(servidor);
+servidor.use(helmet());
 
 servidor.use(cors({
   origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,

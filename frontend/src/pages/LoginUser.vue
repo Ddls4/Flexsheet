@@ -75,9 +75,13 @@ const mensaje = ref('')
 const socket = ref(null)
 
 const LoginUser = () => {
+    const token = localStorage.getItem('token');
     socket.value = io(`http://${import.meta.env.VITE_P_IP}:80`, {
         reconnection: false,
-        timeout: 10000
+        timeout: 10000,
+        auth: {
+            token // ← Aquí enviamos el token al backend
+        }
     })
 
     socket.value.on('connect', () => {

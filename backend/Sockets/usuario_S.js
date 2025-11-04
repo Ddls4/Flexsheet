@@ -75,9 +75,9 @@ export default function usuarioSockets(socket) {
       const isMatch = await bcrypt.compare(password, user.Contraseña);
       if (!isMatch) return callback({ success: false, message: "Usuario o contraseña incorrectos" });
 
-      const token = generateToken({ id: user._id, nombre: user.Nombre_U });
+      const token = generateToken({ id: user._id, nombre: user.Nombre_U, tipo_empresa: user.Tipo_empresa });
 
-      callback({ success: true, token, user: { id: user._id, nombre: user.Nombre_U } });
+      callback({ success: true, token, user: { id: user._id, nombre: user.Nombre_U, tipo_empresa: user.Tipo_empresa } });
     } catch (error) {
       console.error("Error en login:", error);
       callback({ success: false, message: "Error en login" });
@@ -86,24 +86,21 @@ export default function usuarioSockets(socket) {
 
   // Para eventos que requieren autenticación
   socket.on("RegistroEmpresa", async (data, callback) => {
-    // Verificar JWT para este evento
-    if (!socket.user) {
-      return callback({ success: false, message: "No autorizado" });
-    }
-
     try {
+      const payload = jwt.verify(data.token, process.env.JWT_SECRET);
+      
       const usuarioActualizado = await Usuario.findByIdAndUpdate(
-        socket.user.id, // Usar ID del JWT
+        payload.id,
         { Tipo_empresa: true },
         { new: true }
       );
+
       if (!usuarioActualizado)
         return callback({ success: false, message: "Usuario no encontrado" });
-
       callback({ success: true, usuario: usuarioActualizado });
     } catch (error) {
-      console.error("Error al registrar empresa:", error);
-      callback({ success: false, message: "Error al registrar empresa" });
+      console.error("JWT inválido o error:", error);
+      return callback({ success: false, message: "No autorizado" });
     }
   });
 }

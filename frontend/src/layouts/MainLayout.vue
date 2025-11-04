@@ -75,7 +75,11 @@
             </q-item>
           </router-link>
 
-          <router-link to="/MenuEmpresa" class="text-white">
+          <router-link
+            v-if="usuario?.tipo_empresa"
+            to="/MenuEmpresa"
+            class="text-white"
+          >
             <q-item clickable>
               <q-item-section avatar><q-icon name="inventory" /></q-item-section>
               <q-item-section>Menu de empresa</q-item-section>
@@ -156,6 +160,8 @@ const user = ref(null)
 const leftDrawerOpen = ref(false)
 const drawerCompras = ref(false)
 const shoppingCart = ref([])
+
+const usuario = JSON.parse(localStorage.getItem("user"));
 
 // Función para inicializar socket
 const iniciarSocket = () => {

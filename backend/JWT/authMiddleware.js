@@ -2,7 +2,7 @@
 // es una parte clave para proteger tus rutas y sockets (WebSocket/Socket.IO) en el backend.
 // authMiddleware.js
 import jwt from "jsonwebtoken";
-const SECRET_KEY = process.env.JWT_SECRET || "tu_clave_super_secreta_aqui_muy_larga_y_complej";
+const SECRET_KEY = process.env.JWT_SECRET || "tu_clave_super_secreta_muy_larga_y_compleja";
 
 
 export const verifyJWT = (req, res, next) => {

@@ -10,12 +10,18 @@
       style="opacity: 0.04; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
     />
     <!-- Título -->
-      <div
-        class="text-h1 text-weight-bolder q-mb-sm"
-        style="text-shadow: 0 2px 8px rgba(0,0,0,0.3); background: linear-gradient(90deg, #fff, #cfd8dc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-      >
-        Altashop
-      </div>
+    <div
+      class="text-h1 text-weight-bolder q-mb-sm"
+      style="
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        background: linear-gradient(90deg, #fff, #cfd8dc);
+        background-clip: text;             
+        -webkit-background-clip: text;      
+        -webkit-text-fill-color: transparent;
+      "
+    >
+      Altashop
+    </div>
 
       <!-- Subtítulo -->
       <div class="text-subtitle1 text-grey-4 q-mb-xl">
@@ -32,6 +38,7 @@
           style="width: 180px; transition: transform 0.2s;"
           @mouseover="hover = item.label"
           @mouseleave="hover = ''"
+          @click="goTo(item.route)"  
           :style="hover === item.label ? 'transform: scale(1.08);' : ''"
         >
           <q-icon :name="item.icon" size="40px" class="q-mb-sm" />
@@ -57,13 +64,25 @@
 
 <script setup>
   import { ref } from 'vue'
-  const hover = ref('')
+  import { useRouter } from "vue-router";
+
+  const router = useRouter();
+  const hover = ref("");
 
   const items = [
-    { label: 'Productos', icon: 'store' },
-    { label: 'Historial', icon: 'history' },
-    { label: 'Configuración', icon: 'settings' }
+    { label: 'Productos', icon: 'store', route: "/Menu" },
+    { label: 'Historial', icon: 'history', route: "/Tabla" },
+    { label: 'Configuración', icon: 'settings', route: null }
   ]
+
+  function goTo(route) {
+    if (route) {
+      router.push(route);
+    } else {
+      console.log("Ruta aún no disponible");
+    }
+  }
+
 </script>
 
 <style scoped>
