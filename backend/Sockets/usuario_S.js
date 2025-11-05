@@ -3,8 +3,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Usuario from "../models/usuario.js";
 import { generateToken } from "../JWT/generateToken.js";
+import mongoSanitize from "mongo-sanitize";
 
-const SECRET_KEY = process.env.JWT_SECRET || "claveSuperSegura";
+const SECRET_KEY = process.env.JWT_SECRET || "tu_clave_super_secreta_muy_larga_y_compleja";
 
 // Middleware para verificar JWT por evento
 function verifyEventJWT(socket, callback) {
@@ -21,6 +22,8 @@ function verifyEventJWT(socket, callback) {
   
   return true;
 }
+
+
 
 export default function usuarioSockets(socket) {
   socket.on("registrar", async (data, callback) => {
@@ -62,8 +65,8 @@ export default function usuarioSockets(socket) {
       if (!data.password || data.password.length < 6 || data.password.length > 20) {
         return callback({ success: false, message: "Contraseña inválida." });
       }
-      const username = sanitize(data.username);
-      const password = sanitize(data.password);
+      const username = mongoSanitize(data.username);
+      const password = mongoSanitize(data.password);
 
       if (typeof username !== 'string' || typeof password !== 'string') {
         return callback({ success: false, message: "Datos inválidos" });

@@ -17,7 +17,6 @@ export default function negocioSockets(socket) {
     // * Menu de empresa en el frontend * 
     // -------------------
 
-    // ✅ CORREGIDO
     socket.on("solicitar_cards", async (callback) => {
         try {
             console.log("🔍 Solicitud de cards recibida");
@@ -47,7 +46,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ✅ CORREGIDO
     socket.on("crear_negocio", async (data, callback) => {
         try {
             if (!socket.user) {
@@ -76,7 +74,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ⚠️ CORREGIR - Eliminar negocio
     socket.on("eliminar_negocio", async ({ negocioId }, callback) => {
         try {
             if (!socket.user) {
@@ -99,7 +96,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ⚠️ CORREGIR - Editar negocio
     socket.on("editar_negocio", async (data, callback) => {
         try {
             if (!socket.user) {
@@ -133,11 +129,22 @@ export default function negocioSockets(socket) {
         }
     });
 
+    socket.on("actualizar_estado_publico", async (data, callback) => {
+        try {
+            const { negocioId, publico } = data;
+            const result = await Negocio.findByIdAndUpdate(negocioId, { publico }, { new: true });
+            if (!result) return callback({ success: false, message: "Negocio no encontrado" });
+
+            callback({ success: true });
+        } catch (err) {
+            console.error("Error actualizando estado:", err);
+            callback({ success: false, message: "Error en el servidor" });
+        }
+    });
     // -------------------
     // * Servicios dentro de Negocio* 
     // -------------------
 
-    // ⚠️ CORREGIR - Obtener servicios de un negocio
     socket.on("obtener_servicios", async ({ negocioId }, callback) => {
         try {
             if (!socket.user) {
@@ -164,7 +171,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ⚠️ CORREGIR - Agregar servicio a un negocio
     socket.on("agregar_servicio", async (data, callback) => {
         try {
             if (!socket.user) {
@@ -199,7 +205,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ⚠️ CORREGIR - Eliminar servicio de un negocio
     socket.on("eliminar_servicio", async (data, callback) => {
         try {
             if (!socket.user) {
@@ -238,7 +243,6 @@ export default function negocioSockets(socket) {
         }
     });
 
-    // ⚠️ CORREGIR - Editar servicio de un negocio
     socket.on("editar_servicio", async (data, callback) => {
         try {
             if (!socket.user) {
