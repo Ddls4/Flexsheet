@@ -83,7 +83,7 @@
       <div class="col-12 col-md-9 col-lg-10">
         <div class="row q-col-gutter-md ">
           <div
-            v-for="(card, index) in cards"
+            v-for="(card, index) in filteredCards"
             :key="index"
             class="col-6 col-sm-4 col-md-3 col-lg-2 q-mb-md"
           >
@@ -289,6 +289,43 @@ watch(socketConnected, (newVal) => {
     console.log('🔗 Socket conectado, cargando negocios...')
     cargarNegocios()
   }
+})
+// 🔹 Negocios filtrados dinámicamente según los filtros seleccionados
+const filteredCards = computed(() => {
+  return cards.value.filter((card) => {
+    // --- Filtro por nombre ---
+    if (filters.value.nombre && !card.Nombre_N?.toLowerCase().includes(filters.value.nombre.toLowerCase())) {
+      return false
+    }
+
+    // --- Filtro por departamento ---
+    if (departamento.value && card.Departamento !== departamento.value) {
+      return false
+    }
+
+    // --- Filtro por ciudad ---
+    if (ciudad.value && card.Ciudad !== ciudad.value) {
+      return false
+    }
+
+    // --- Filtro por precio ---
+    if (precio.value) {
+      const price = parseFloat(card.precio || card.Precio || 0)
+      if (precio.value === '< $1000' && price >= 1000) return false
+      if (precio.value === '$1000 - $5000' && (price < 1000 || price > 5000)) return false
+      if (precio.value === '> $5000' && price <= 5000) return false
+    }
+
+    // --- Filtro por fecha/hora (si aplica) ---
+    if (filters.value.dateRange?.from && filters.value.dateRange?.to && card.fecha) {
+      const cardDate = new Date(card.fecha)
+      const from = new Date(filters.value.dateRange.from)
+      const to = new Date(filters.value.dateRange.to)
+      if (cardDate < from || cardDate > to) return false
+    }
+
+    return true
+  })
 })
 </script>
 

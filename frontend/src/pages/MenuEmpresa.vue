@@ -109,8 +109,23 @@
         <q-card-section class="q-pt-none">
           <q-input dense v-model="form.Nombre_N"     placeholder="Nombre" />
           <q-input dense v-model="form.url_i"  placeholder="URL_Img" autofocus @keyup.enter="showCreateDialog = false" />
-          <q-input dense v-model="form.departamento"  placeholder="departamento" />
-          <q-input dense v-model="form.ciudad"  placeholder="ciudad" />
+          <q-select
+            dense
+            v-model="form.departamento"
+            :options="departamentos"
+            label="Departamento"
+            emit-value
+            map-options
+            @update:model-value="form.ciudad = ''"
+          />
+
+          <q-select
+            dense
+            v-model="form.ciudad"
+            :options="form.departamento ? ciudadesPorDepartamento[form.departamento] : []"
+            label="Ciudad"
+            :disable="!form.departamento"
+          />
         </q-card-section>
 
 
@@ -143,8 +158,23 @@
         <q-card-section class="q-pt-none">
           <q-input dense v-model="editForm.Nombre_N" placeholder="Nombre del Negocio" />
           <q-input dense v-model="editForm.url_i" placeholder="URL Imagen" />
-          <q-input dense v-model="editForm.departamento" placeholder="Departamento" />
-          <q-input dense v-model="editForm.ciudad" placeholder="Ciudad" />
+          <q-select
+            dense
+            v-model="editForm.departamento"
+            :options="departamentos"
+            label="Departamento"
+            emit-value
+            map-options
+            @update:model-value="editForm.ciudad = ''"
+          />
+
+          <q-select
+            dense
+            v-model="editForm.ciudad"
+            :options="editForm.departamento ? ciudadesPorDepartamento[editForm.departamento] : []"
+            label="Ciudad"
+            :disable="!editForm.departamento"
+          />
           <div class="q-mt-sm">
             <q-checkbox 
               v-model="editForm.publico" 
@@ -171,7 +201,16 @@
           </q-toolbar-title>
           <q-btn flat dense icon="close" @click="showDrawer = false" />
         </q-toolbar>
-
+        <div class="q-pa-md q-mb-sm flex items-center justify-between">
+          <div class="text-subtitle2">Visibilidad del negocio</div>
+          <q-toggle
+            v-model="negocioSeleccionado.publico"
+            color="green"
+            checked-icon="visibility"
+            unchecked-icon="visibility_off"
+            @update:model-value="(val) => actualizarEstadoPublico(negocioSeleccionado, val)"
+          />
+        </div>
         <q-separator dark />
 
         <q-card-section style="overflow-y: auto; max-height: 60vh;">
@@ -191,7 +230,7 @@
 
           <q-btn color="positive" label="Agregar Servicio" icon="add" @click="abrirFormularioAgregarServicio" />
         </q-card-section>
-
+        
         <!-- Dialogo para editar/agregar servicio -->
         <q-dialog v-model="showServicioDialog" persistent>
           <q-card style="min-width: 400px;">
@@ -269,6 +308,28 @@ const formServicio = ref({
 })
 let servicioEditIndex = null
 
+const ciudadesPorDepartamento = {
+  'Artigas': ['Artigas', 'Bella Unión', 'Tomás Gomensoro'],
+  'Canelones': ['Canelones', 'Las Piedras', 'La Paz', 'Santa Lucía'],
+  'Cerro Largo': ['Melo', 'Río Branco', 'Fraile Muerto'],
+  'Colonia': ['Colonia del Sacramento', 'Carmelo', 'Juan Lacaze'],
+  'Durazno': ['Durazno', 'Sarandí del Yí'],
+  'Flores': ['Trinidad'],
+  'Florida': ['Florida', 'Sarandí Grande'],
+  'Lavalleja': ['Minas', 'José Pedro Varela'],
+  'Maldonado': ['Maldonado', 'Punta del Este', 'San Carlos'],
+  'Montevideo': ['Montevideo'],
+  'Paysandú': ['Paysandú', 'Guichón'],
+  'Río Negro': ['Fray Bentos', 'Young'],
+  'Rivera': ['Rivera', 'Tranqueras'],
+  'Rocha': ['Rocha', 'Castillos', 'Chuy'],
+  'Salto': ['Salto', 'San Antonio'],
+  'San José': ['San José de Mayo', 'Libertad'],
+  'Soriano': ['Mercedes', 'Dolores'],
+  'Tacuarembó': ['Tacuarembó', 'Paso de los Toros'],
+  'Treinta y Tres': ['Treinta y Tres', 'Vergara']
+};
+const departamentos = Object.keys(ciudadesPorDepartamento);
 // -- Funciones Negocios --
 
 // Verificar conexión antes de cualquier operación
@@ -525,6 +586,21 @@ const eliminarServicio = (servicioId) => {
       alert(res.message || "Error al eliminar servicio");
     }
   });
+};
+const actualizarEstadoPublico = (negocio, nuevoEstado) => {
+  if (!verificarConexion()) return;
+
+  socket.value.emit(
+    "actualizar_estado_publico",
+    { negocioId: negocio.id, publico: nuevoEstado },
+    (res) => {
+      if (res.success) {
+        console.log(`✅ Negocio "${negocio.title}" actualizado a ${nuevoEstado ? "público" : "privado"}`);
+      } else {
+        alert(res.message || "Error al actualizar estado de visibilidad");
+      }
+    }
+  );
 };
 </script>
 
