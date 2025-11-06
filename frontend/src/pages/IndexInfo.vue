@@ -5,9 +5,12 @@
     style="width: 100%; max-width: 900px; text-align: center; min-height: calc(100vh - 100px);"
   >
     <q-img
-      src="~assets/bg-carwash.jpg"
+      src="~assets/bg-carwash-thum.webp"
+      
       class="absolute-top-left"
-      style="opacity: 0.04; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
+      loading="eager"
+      fetchpriority="high"
+      style="opacity: 0.05; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
     />
     <!-- Título -->
     <div
@@ -24,7 +27,7 @@
     </div>
 
       <!-- Subtítulo -->
-      <div class="text-subtitle1 text-grey-4 q-mb-xl">
+      <div class="text-subtitle1 text-grey-2 q-mb-xl">
         Elegí el mejor lugar para lavar tu auto según tu tiempo <br>
         y preferencias, todo desde un solo lugar.
       </div>
@@ -34,32 +37,34 @@
         <q-card
           v-for="item in items"
           :key="item.label"
-          class="bg-blue-grey-7 text-white q-pa-lg cursor-pointer"
-          style="width: 180px; transition: transform 0.2s;"
+          class="bg-blue-grey-7 text-white q-pa-lg cursor-pointer transition-all"
+          style="width: 180px; transform-origin: center;"
           @mouseover="hover = item.label"
           @mouseleave="hover = ''"
-          @click="goTo(item.route)"  
-          :style="hover === item.label ? 'transform: scale(1.08);' : ''"
+          @click="goTo(item.route)"
+          :style="hover === item.label ? 'transform: scale(1.08);' : 'transform: scale(1);'"
         >
-          <q-icon :name="item.icon" size="40px" class="q-mb-sm" />
+        <q-icon :name="item.icon" size="40px" class="q-mb-sm" />
           <div class="text-subtitle1 text-bold">{{ item.label }}</div>
         </q-card>
       </div>
 
       <!-- Texto descriptivo -->
-      <div class="text-body1 text-grey-3 q-mx-md q-mb-md">
+      <div class="text-body1 text-grey-1 q-mx-md q-mb-md">
         Para comenzar, ingresá a la sección <strong>Productos</strong> para explorar nuestra tienda.
         Desde el menú de <strong>Opciones</strong> podés personalizar tu experiencia.
         Agregá los artículos que te gusten al carrito y descubrí una nueva forma de comprar.
       </div>
 
       <!-- Footer -->
-      <div class="text-caption text-grey-5 q-mt-xl">
+      <div class="text-caption text-grey-2 q-mt-xl">
         © 2025 Altashop - Hecho con Quasar
       </div>
 
     </div>
   </q-page>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </template>
 
 <script setup>
@@ -86,4 +91,7 @@
 </script>
 
 <style scoped>
+.transition-all {
+  transition: transform 0.25s ease-in-out;
+}
 </style>

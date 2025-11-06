@@ -28,7 +28,7 @@
         <div v-if="$q.screen.gt.xs"> 
           <q-btn label="Registro" icon="playlist_add" color="blue-6" :to="`/Registro`" />
           <q-btn label="Login" icon="login" color="blue-6" :to="`/Login`" />
-          <q-btn icon="shopping_cart" color="blue" @click="drawerCompras = true" round />
+          <q-btn icon="shopping_cart" color="blue" @click="drawerCompras = true" round aria-label="Abrir carrito de compras"/>
         </div>
       </q-toolbar>
     </q-header>

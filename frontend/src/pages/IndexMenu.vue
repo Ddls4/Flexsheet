@@ -2,8 +2,11 @@
  <q-page class="flex bg-blue-grey-10 text-white">
     <!-- Fondo -->
     <q-img
-      src="~assets/bg-carwash.jpg"
+      src="~assets/bg-carwash.webp"
+      
       class="absolute-top-left"
+      loading="eager"
+      fetchpriority="high"
       style="opacity: 0.05; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
     />
     <!-- Contenedor general -->
@@ -14,18 +17,20 @@
         class="col-12 col-md-3 col-lg-2 bg-blue-grey-9 q-pa-md q-mb-md"
         style="border-radius: 8px; min-height: 90vh;"
       >
-        <div class="text-h6 text-center q-mb-md bg-blue-5 q-pa-sm rounded-borders">
+        <div class="text-h6 text-center q-mb-md bg-blue-8 q-pa-sm rounded-borders">
           <q-icon name="filter_alt" size="sm" class="q-mr-sm" /> Filtros
         </div>
 
         <!-- Fecha y hora en inputs compactos -->
         <div class="q-gutter-sm">
           <q-input
-            v-model="filters.dateRange"
-            label="Fecha"
-            standout="bg-light-blue-5 text-white"
+            v-model="filters.dateRange" 
+            label="Fecha" 
+            dense 
             readonly
-            dense
+            outlined
+            class="bg-blue-grey-9 text-white"
+            label-color="white"
           >
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer" @click="showDate = true" />
@@ -33,11 +38,14 @@
           </q-input>
 
           <q-input
-            v-model="filters.time"
-            label="Hora"
-            standout="bg-light-blue-5 text-white"
+            v-model="filters.time" 
+            label="Hora" 
+            dense 
             readonly
-            dense
+            outlined
+            class="bg-blue-grey-9 text-white"
+            label-color="white"
+            clearable
           >
             <template v-slot:append>
               <q-icon name="access_time" class="cursor-pointer" @click="showTime = true" />
@@ -64,10 +72,10 @@
           </q-dialog>
 
           <!-- Otros filtros -->
-          <q-input input-class="text-white" standout="bg-light-blue-5 text-white" dense filled v-model="filters.nombre" label="Buscar Nombre" />
-          <q-select use-chips standout="bg-light-blue-5 text-white" dense filled v-model="departamento" :options="Object.keys(ciudadesPorDepartamento)" label="Departamento" />
-          <q-select use-chips standout="bg-light-blue-5 text-white" dense filled v-model="ciudad" :options="ciudades" label="Ciudad" />
-          <q-select standout="bg-light-blue-5 text-white" dense filled v-model="precio" :options="precios" label="Precio" />
+          <q-input  label-color="white" input-class="text-white" standout="bg-blue-8 text-white" dense filled v-model="filters.nombre" label="Buscar Nombre" />
+          <q-select label-color="white" use-chips standout="bg-blue-8 text-white" dense filled v-model="departamento" :options="Object.keys(ciudadesPorDepartamento)" label="Departamento" />
+          <q-select label-color="white" use-chips standout="bg-blue-8 text-white" dense filled v-model="ciudad" :options="ciudades" label="Ciudad" />
+          <q-select label-color="white" standout="bg-blue-8 text-white" dense filled v-model="precio" :options="precios" label="Precio" />
         </div>
       </div>
 
@@ -84,7 +92,7 @@
               @click="cardClicked(card)"
             >
               <q-img
-                :src="card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+                :src="card.imagenURL || defaultImage"
                 ratio="1"
                 class="rounded-borders"
               >
@@ -115,7 +123,7 @@
                 class="q-mr-sm"
               />
               <q-img
-                :src="servicio.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+                :src="servicio.imagenURL || defaultImage"
                 alt="Imagen del servicio"
                 style="width: 80px; height: 80px; object-fit: cover;"
                 class="q-mr-md rounded-borders"
@@ -131,7 +139,7 @@
           <div class="col-6 q-pa-md">
             <h5 class="q-mb-sm">{{ selectedCard?.Nombre_N }}</h5>
             <q-img
-              :src="selectedCard?.url_i || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'"
+              :src="selectedCard?.url_i || defaultImage"
               style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;"
               class="q-mb-md"
             />
@@ -142,7 +150,7 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cerrar" color="primary" v-close-popup />
+          <q-btn flat label="Cerrar" color="primary" v-close-popup aria-label="Cerrar diálogo de negocio" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -153,6 +161,7 @@
 <script setup>
 import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import defaultImage from 'assets/DBI-1.webp'
 
 const $q = useQuasar()
 
@@ -283,16 +292,21 @@ watch(socketConnected, (newVal) => {
 })
 </script>
 
-
-
-
 <style scoped>
 .hover-card {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .hover-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2); /* sombra blanca suave */
+}
+.q-field__native::placeholder {
+  color: #ffffff !important;
+  opacity: 1 !important; /* para que no se vea transparente */
 }
 
+/* Para labels flotantes */
+.q-field__label {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
 </style>

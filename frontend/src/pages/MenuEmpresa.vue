@@ -2,8 +2,11 @@
   <q-page class=" flex bg-blue-grey-10 text-white " >
     <!-- Imagen de fondo -->
     <q-img
-      src="~assets/bg-carwash.jpg"
+      src="~assets/bg-carwash.webp"
+      
       class="absolute-top-left"
+      loading="eager"
+      fetchpriority="high"
       style="opacity: 0.05; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
     />
     <!-- Contenedor general -->
@@ -81,8 +84,8 @@
               
               <q-card-section style="padding: 0;">
                 <q-img 
-                  v-if="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg'  " 
-                  :src="card.imagenURL ||  'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg' "
+                  v-if="card.imagenURL ||  defaultImage  " 
+                  :src="card.imagenURL ||  defaultImage "
                   style=" max-width: 200px; max-height: 200px; width: 100%; height: 100%; object-fit: cover; padding: 0;"
                 >
                 <div class="absolute-bottom text-subtitle2 text-center">{{ card.title }}</div>
@@ -218,6 +221,7 @@
 <script setup>
 import { reactive, ref, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router'
+import defaultImage from 'assets/DBI-1.webp'
 
 // === Usar socket inyectado en lugar de crear uno nuevo ===
 const socket = inject('socket')
@@ -292,7 +296,7 @@ const fetchUserCards = async () => {
       cards.value = response.cards.map(card => ({
         id: card._id || card.id,
         title: card.Nombre_N || card.title,
-        imagenURL: card.imagenURL || 'https://www.astera.com/wp-content/uploads/2019/05/DBI-1.jpg',
+        imagenURL: card.imagenURL || defaultImage,
         departamento: card.Departamento,
         ciudad: card.Ciudad,
         servicios: card.servicios || [],
