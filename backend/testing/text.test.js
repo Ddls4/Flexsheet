@@ -1,6 +1,4 @@
 // npm test
-// export { suma };
-// import {suma} from "../funciones.js"
 import mongoose from "mongoose";
 import { config } from "dotenv";
 

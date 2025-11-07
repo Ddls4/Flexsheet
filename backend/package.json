@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "set NODE_OPTIONS=--experimental-vm-modules&& jest ./testing/text.test.js",
+    "test": "set NODE_OPTIONS=--experimental-vm-modules&& jest --detectOpenHandles",
     "dev": "concurrently \"cd backend && node indexMongo.js\" \"cd frontend && quasar dev\"",
     "build": "cd frontend && quasar build",
     "start": "node indexMongo.js"
@@ -30,10 +30,13 @@
     "mysql2": "^3.14.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0",
-    "socket.io": "^4.8.1"
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "jest": "^30.1.3"
+    "jest": "^30.1.3",
+    "mongodb-memory-server": "^10.3.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "supertest": "^7.1.4"
   }
 }
