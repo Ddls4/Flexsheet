@@ -3,7 +3,7 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
-import Usuario from "../Sockets/Usuario_S.js";
+import Usuario from "../Sockets/usuario_S.js";
 
 passport.use(
   new LocalStrategy(

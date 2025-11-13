@@ -1,5 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
+    <!-- HEADER -->
     <q-header elevated>
       <q-toolbar class="bg-blue-grey-8 text-white">
         <q-btn
@@ -32,8 +33,8 @@
         </div>
       </q-toolbar>
     </q-header>
-    
-    <!-- Drawer del Menu lateral -->
+
+    <!-- DRAWER LATERAL -->
     <q-drawer
       v-model="leftDrawerOpen"
       overlay
@@ -105,11 +106,11 @@
             </q-badge>
           </div>
         </div>
-      </div> 
+      </div>
     </q-drawer>
-    
-    <!-- Drawer del carrito -->
-    <q-drawer v-model="drawerCompras" side="right" overlay class="">
+
+    <!-- DRAWER CARRITO -->
+    <q-drawer v-model="drawerCompras" side="right" overlay>
       <div class="q-pa-md full-height column">
         <h5>🛒 Carrito de compra</h5>
         <div v-if="shoppingCart.length === 0">
@@ -135,7 +136,13 @@
       </div>
     </q-drawer>
 
+    <!-- PAGE CONTAINER -->
     <q-page-container @click="cerrarDrawerSiClicFuera">
+      <!-- Botón de prueba para socket -->
+      <button @click="enviarMensaje('Hola backend!')">
+        Enviar mensaje
+      </button>
+
       <router-view :socket="socket" />
     </q-page-container>
   </q-layout>
@@ -169,7 +176,6 @@ const iniciarSocket = () => {
     return
   }
 
-  // Limpiar socket anterior si existe
   if (socket.value) {
     socket.value.disconnect()
     socket.value = null
@@ -182,7 +188,6 @@ const iniciarSocket = () => {
     reconnectionDelay: 1000,
   })
 
-  // Configurar event listeners SOLO si socket existe
   socket.value.on('connect', () => {
     socketConnected.value = true
     socketId.value = socket.value.id
@@ -199,7 +204,6 @@ const iniciarSocket = () => {
     console.error('❌ Error de conexión WebSocket:', error.message)
     socketConnected.value = false
     
-    // Si es error de autenticación, redirigir al login
     if (error.message.includes('Token') || error.message.includes('authorizado')) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
@@ -214,30 +218,21 @@ const iniciarSocket = () => {
 
 // Watcher para cambios en el token
 watch(() => localStorage.getItem("token"), (newToken) => {
-  if (newToken) {
-    console.log("🔄 Token actualizado, reconectando socket...")
-    iniciarSocket()
-  } else {
-    console.log("🔒 Token eliminado, desconectando socket...")
-    if (socket.value) {
-      socket.value.disconnect()
-      socket.value = null
-    }
+  if (newToken) iniciarSocket()
+  else if (socket.value) {
+    socket.value.disconnect()
+    socket.value = null
     socketConnected.value = false
     socketId.value = null
   }
 })
 
-// Inicializar al montar el componente
+// Inicializar al montar
 onMounted(() => {
-  // Cargar usuario desde localStorage
   const userData = localStorage.getItem('user')
   if (userData) {
-    try {
-      user.value = JSON.parse(userData)
-    } catch (e) {
-      console.error('Error parsing user data:', e)
-    }
+    try { user.value = JSON.parse(userData) } 
+    catch (e) { console.error('Error parsing user data:', e) }
   }
   
   iniciarSocket()
@@ -245,39 +240,24 @@ onMounted(() => {
 
 // Limpiar al desmontar
 onBeforeUnmount(() => {
-  if (socket.value) {
-    socket.value.disconnect()
-    socket.value = null
-  }
+  if (socket.value) socket.value.disconnect()
 })
 
-const toggleLeftDrawer = () => {
-  leftDrawerOpen.value = !leftDrawerOpen.value
-}
-
+const toggleLeftDrawer = () => leftDrawerOpen.value = !leftDrawerOpen.value
 const enviarMensaje = (mensaje) => {
-  if (socket.value && socketConnected.value) {
-    socket.value.emit('mensaje_cliente', mensaje)
-  } else {
-    console.warn('No se puede enviar mensaje: WebSocket no conectado')
-  }
+  if (socket.value && socketConnected.value) socket.value.emit('mensaje_cliente', mensaje)
+  else console.warn('No se puede enviar mensaje: WebSocket no conectado')
 }
-
 function cerrarDrawerSiClicFuera() {
   drawerCompras.value = false
   leftDrawerOpen.value = false
 }
 
-// Proveer datos a componentes hijos
+// Proveer datos a hijos
 provide('shoppingCart', shoppingCart)
 provide('socket', socket)
 provide('socketConnected', socketConnected)
 
-// Exportar para usar en otros componentes si es necesario
-defineExpose({
-  socket,
-  socketConnected,
-  socketId,
-  enviarMensaje
-})
+// Exponer para otros componentes
+defineExpose({ socket, socketConnected, socketId, enviarMensaje })
 </script>
