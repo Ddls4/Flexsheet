@@ -1,3 +1,4 @@
+// config.js
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -7,70 +8,95 @@ import path from "path";
 import { config } from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
-// JWT
-import jwt from "jsonwebtoken";
+
+// JWT + Passport
+import passport from "./JWT/passport.js";
 import protectedRoutes from "./JWT/protectedRoutes.js";
 import { verifySocketJWT } from "./JWT/authMiddleware.js";
-import passport from "./JWT/passport.js";
-
 
 config();
 
+// ------------------------------
+//   RUTAS DE ARCHIVOS
+// ------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ------------------------------
+//   EXPRESS
+// ------------------------------
 const servidor = express();
 const httpServer = createServer(servidor);
-servidor.use(helmet());
 
-servidor.use(cors({
-  origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
-  credentials: true
-}));
+// Seguridad
+servidor.use(
+  helmet({
+    contentSecurityPolicy: false, // necesaria para evitar el error
+    crossOriginEmbedderPolicy: false, 
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+  })
+);
+servidor.use(helmet.noSniff());
 
-// --- Middlewares ---
+
+
+servidor.use(
+  cors({
+    origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
+    credentials: true,
+  })
+);
+
+// Middlewares
 servidor.use(morgan("dev"));
 servidor.use(express.json());
 servidor.use(express.urlencoded({ extended: true }));
 servidor.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 servidor.use((req, res, next) => {
-    req.setTimeout(30000);
-    res.setTimeout(30000); 
-    next();
+  req.setTimeout(30000);
+  res.setTimeout(30000);
+  next();
 });
 
+// ------------------------------
+//   PASSPORT
+// ------------------------------
+servidor.use(passport.initialize());
 
+// ------------------------------
+//   RUTAS PROTEGIDAS
+// ------------------------------
+servidor.use("/api", protectedRoutes);
 
+// ------------------------------
+//   SOCKET.IO
+// ------------------------------
 const io = new Server(httpServer, {
   cors: {
     origin: `http://${process.env.P_IP}:${process.env.PORT_W}`,
     methods: ["GET", "POST"],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   },
 });
-// --- Passport inicializado ---
-servidor.use(passport.initialize());
-
-// --- Rutas ---
-servidor.use("/api", protectedRoutes);
-// --- Socket.IO con JWT ---
-io.on("connection", (socket) => {
-  console.log("Usuario conectado:", socket.user?.nombre || "anónimo");
-
-  socket.on("mensaje", (data) => {
-    console.log(`Mensaje de ${socket.user.nombre}:`, data);
-  });
+servidor.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/spa/index.html"));
+});
+io.use(verifySocketJWT);
+// ------------------------------
+//   INICIAR SERVIDOR
+// ------------------------------
+httpServer.listen(process.env.PORT, "0.0.0.0", () => {
+  console.log(
+    `Servidor API:       http://${process.env.P_IP}:${process.env.PORT}`
+  );
+  console.log(
+    `WebSocket (JWT):    http://${process.env.P_IP}:${process.env.PORT}`
+  );
+  console.log(
+    `Frontend Quasar:    http://${process.env.P_IP}:${process.env.PORT_W}`
+  );
 });
 
-// Iniciar servidor
-httpServer.listen(process.env.PORT, '0.0.0.0', () => {
-  console.log(`Servidor escuchando en http://${process.env.P_IP}:${process.env.PORT}`);
-  console.log(`WebSocket disponible en ws: http://${process.env.P_IP}:${process.env.PORT_W}`); // login
-  console.log(`Web sin Backend en http://localhost:${process.env.PORT_W}`);
-})
-
-export{
-    servidor,
-    io
-}
+export { servidor, io };

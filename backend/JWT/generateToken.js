@@ -1,3 +1,4 @@
+// generateToken.js
 import jwt from "jsonwebtoken";
 const SECRET_KEY = process.env.JWT_SECRET || "tu_clave_super_secreta_muy_larga_y_compleja";
 

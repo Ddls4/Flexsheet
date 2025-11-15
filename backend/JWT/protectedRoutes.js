@@ -1,4 +1,5 @@
 // Por ahora sin uso, pero se deja para futuras rutas protegidas
+// protectedRoutes.js
 import express from "express";
 import { verifyJWT } from "./authMiddleware.js";
 

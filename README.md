@@ -20,7 +20,7 @@ Backend Structure
 backend/
 ├── JWT/                    # Sistema de autenticación
 │   ├── authMiddleware.js   # Middleware de verificación JWT
-│   ├── authRoutes.js       # Rutas HTTP para auth (register/login)
+│   ├── generateToken.js
 │   ├── passport.js         # Configuración Passport.js
 │   └── protectedRoutes.js  # Rutas protegidas
 ├── Sockets/                # Handlers de WebSockets
