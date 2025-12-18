@@ -14,10 +14,10 @@ RUN npm install --omit=dev
 COPY . .
 
 # Exponer el puerto (ajusta si tu backend usa otro)
-EXPOSE 3000
+EXPOSE 80
 
 # Definir las variables de entorno si querés (opcional)
 # ENV NODE_ENV=production
 
 # Comando para iniciar el servidor
-CMD ["node", "indexMongo.js"]
+CMD ["node", "index.js"]
